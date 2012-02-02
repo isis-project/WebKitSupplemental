@@ -1,0 +1,8 @@
+*.so
+*.a
+*.o
+*/Makefile*
+*.moc
+moc_*
+build.sh
+patches
