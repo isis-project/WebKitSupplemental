@@ -4,5 +4,4 @@
 */Makefile*
 *.moc
 moc_*
-build.sh
 patches
