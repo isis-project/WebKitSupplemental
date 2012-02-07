@@ -16,8 +16,8 @@
 *
 LICENSE@@@ */
 
-#ifndef QBSINTERFACE_H
-#define QBSINTERFACE_H
+#ifndef qbsinterface_h
+#define qbsinterface_h
 
 class QWidget;
 
@@ -39,4 +39,4 @@ typedef QBsDriver* (*qpa_qbs_register_client_function)(QWidget *window, QBsClien
 
 };
 
-#endif // QBSINTERFACE_H
+#endif // qbsinterface_h

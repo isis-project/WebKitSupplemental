@@ -16,12 +16,12 @@
 *
 LICENSE@@@ */
 
-#ifndef PHRASEPICKERWIDGET_H
-#define PHRASEPICKERWIDGET_H
+#ifndef phrasePickerWidget_h
+#define phrasePickerWidget_h
 
-#include <QObject>
-#include <QGraphicsPixmapItem>
 #include <QGraphicsOpacityEffect>
+#include <QGraphicsPixmapItem>
+#include <QObject>
 #include <QTime>
 
 /* <apm> tasks:
@@ -33,9 +33,8 @@ const int kPickerMaxWidth = 200; // <apm> replace this constant with one from le
 
 class PhrasePickerWidget;
 
-//! class designed to be encapsulated by phrase picker items in order to handle common drag functionality
-class PickerItem : public QObject
-{
+// class designed to be encapsulated by phrase picker items in order to handle common drag functionality
+class PickerItem : public QObject {
     Q_OBJECT;
 
 public:
@@ -44,13 +43,13 @@ public:
 
     PickerItem() : m_clickInProgress(false), m_dragInProgress(false) { }
 
-    void mousePress(QGraphicsSceneMouseEvent* event);
-    void mouseMove(QGraphicsSceneMouseEvent* event);
-    void mouseRelease(QGraphicsSceneMouseEvent* event);
+    void mousePress(QGraphicsSceneMouseEvent*);
+    void mouseMove(QGraphicsSceneMouseEvent*);
+    void mouseRelease(QGraphicsSceneMouseEvent*);
 
     // work-around for QTBUG-15477 here: https://bugreports.qt.nokia.com/browse/QTBUG-15477
     // please test mouse clicks without this function periodically, and remove this when possible
-    bool scene(QEvent *event);
+    bool scene(QEvent*);
 
 signals:
     void dragStarted();
@@ -107,7 +106,7 @@ protected:
     virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) { m_item.mouseRelease(event); }
     virtual bool sceneEvent(QEvent *event) { return m_item.scene(event); }
 
-    //NB: note this class currently ignores the itemClicked event from m_item because it's not necessary. This could easily be changed.
+    // NB: note this class currently ignores the itemClicked event from m_item because it's not necessary. This could easily be changed.
 
     PhrasePickerWidget* m_pickerParent;
 
@@ -136,7 +135,7 @@ public:
     inline bool isScrollable() const { return m_scrollable; }
 
 signals:
-    void phraseClicked(QString phrase); //< emited when a particular phrase is picked
+    void phraseClicked(QString phrase); // emited when a particular phrase is picked
 
 protected slots:
     void onPhraseClicked(QString phrase);
@@ -151,14 +150,14 @@ protected:
 
     void updateDragVelocity(int xDelta);
 
-    //! handles fading in and out
-    void timerEvent (QTimerEvent* event);
+    // handles fading in and out
+    void timerEvent(QTimerEvent*);
 
-    //! describes the background of the widget, whether it has an arrow and which direction it points
+    // describes the background of the widget, whether it has an arrow and which direction it points
     enum ArrowDirection { arrowDown, arrowUp };
 
-    //! re-render full phrase background to own pixmap, including properly sized background
-    void renderPhrasesToImage(ArrowDirection direction, int pointerOffsetFromCenter, int maxImageWidth);
+    // re-render full phrase background to own pixmap, including properly sized background
+    void renderPhrasesToImage(ArrowDirection, int pointerOffsetFromCenter, int maxImageWidth);
 
     int m_textWidth;
     int m_minBGWidth;
@@ -180,7 +179,7 @@ protected:
     // text render caching related
     bool m_hasRenderedWithCurrentPhrases;
     ArrowDirection m_lastArrowDir;
-    int m_lastArrowOffset; //!< offset of last arrow image render
+    int m_lastArrowOffset; // offset of last arrow image render
 
 
     // pixmaps for drawing phrase backgrounds
@@ -208,4 +207,4 @@ protected:
     QGraphicsOpacityEffect* m_fadeEffect;
 };
 
-#endif // PHRASEPICKERWIDGET_H
+#endif // phrasePickerWidget_h

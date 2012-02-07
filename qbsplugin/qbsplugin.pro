@@ -44,7 +44,7 @@ isEmpty(STAGING_LIBDIR):STAGING_LIBDIR = $$(LUNA_STAGING)/lib
 #install headers
 headers.path = $${STAGING_INCDIR}/WebKitSupplemental
 headers.files += \
-	qbsinterface.h
+    qbsinterface.h
 
 INSTALLS += headers
 

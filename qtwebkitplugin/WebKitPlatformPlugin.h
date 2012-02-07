@@ -19,11 +19,10 @@ LICENSE@@@ */
 #ifndef WebKitPlatformPlugin_h
 #define WebKitPlatformPlugin_h
 
-#include "qwebkitplatformplugin.h"
 #include "WebOSPlatformPlugin.h"
+#include "qwebkitplatformplugin.h"
 
-class TouchModifier : public QWebTouchModifier
-{
+class TouchModifier : public QWebTouchModifier {
     Q_OBJECT
 public:
     virtual unsigned hitTestPaddingForTouch(const PaddingDirection) const { return 20; }
@@ -33,16 +32,15 @@ class Settings : public QObject , public WebOSPlatformPlugin::Settings {
     Q_OBJECT
     Q_INTERFACES(WebOSPlatformPlugin::Settings)
 public:
-    virtual void setComboBoxFactory(WebOSPlatformPlugin::ComboBoxFactory* factory);
+    virtual void setComboBoxFactory(WebOSPlatformPlugin::ComboBoxFactory*);
 };
 
-class WebKitPlatformPlugin : public QObject, public QWebKitPlatformPlugin
-{
+class WebKitPlatformPlugin : public QObject, public QWebKitPlatformPlugin {
     Q_OBJECT
     Q_INTERFACES(QWebKitPlatformPlugin)
 public:
-    virtual bool supportsExtension(Extension extension) const;
-    virtual QObject* createExtension(Extension extension) const;
+    virtual bool supportsExtension(Extension) const;
+    virtual QObject* createExtension(Extension) const;
 };
 
 #endif // WebKitPlatformPlugin_h

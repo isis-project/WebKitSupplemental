@@ -24,7 +24,7 @@ LICENSE@@@ */
 
 namespace webOS {
 
-bool setSelectionColors(const QGraphicsWebView* view);
+bool setSelectionColors(const QGraphicsWebView*);
 
 } // webOS
-#endif //webosmisc_h
+#endif // webosmisc_h

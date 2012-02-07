@@ -16,8 +16,8 @@
 *
 LICENSE@@@ */
 
-#ifndef WEBOS_WEBSETTINGS_H
-#define WEBOS_WEBSETTINGS_H
+#ifndef weboswebsettings_h
+#define weboswebsettings_h
 
 #include <QtCore/QVariant>
 
@@ -26,25 +26,25 @@ namespace webOS {
 
 namespace WebSettings {
 
-   /**
-    * Initialize QSettings to contain values from passed in settingsMap
-    * Read in override settings from /etc/palm/ApplicationName.conf
-    * QSettings userScope will be set to /var/tmp
-    */
-    bool initSettings(const QVariantMap &settingsMap);
+/**
+ * Initialize QSettings to contain values from passed in settingsMap
+ * Read in override settings from /etc/palm/ApplicationName.conf
+ * QSettings userScope will be set to /var/tmp
+ */
+bool initSettings(const QVariantMap &settingsMap);
 
-    /**
-     * Initialize QWebSettings with defaults from QSettings if they have been set
-     */
-    bool initWebSettings();
+/**
+ * Initialize QWebSettings with defaults from QSettings if they have been set
+ */
+bool initWebSettings();
 
-    /**
-     * Expands "1MB" --> 1048576, "2k" --> 2048 etc.
-     */
-    quint64 stringToBytes(const QString &srcString);
+/**
+ * Expands "1MB" --> 1048576, "2k" --> 2048 etc.
+ */
+quint64 stringToBytes(const QString &srcString);
 
 } // WebSettings
 
 } // webOS
 
-#endif // WEBOS_WEBSETTINGS_H
+#endif // weboswebsettings_h

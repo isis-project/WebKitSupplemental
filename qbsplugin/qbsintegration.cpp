@@ -41,20 +41,19 @@
 ****************************************************************************/
 
 #include "qbsintegration.h"
-#include "qminimalwindowsurface.h"
 #include "qbswindowsurface.h"
 #include "qgenericunixfontdatabase.h"
-
-#include <QtGui/private/qpixmap_raster_p.h>
-#include <QtGui/QPlatformWindow>
-#include <QGraphicsView>
+#include "qminimalwindowsurface.h"
 
 #include <QDebug>
+#include <QGraphicsView>
+#include <QtGui/QPlatformWindow>
+#include <QtGui/private/qpixmap_raster_p.h>
 
 QBsIntegration::QBsIntegration()
     : mFontDb(new QGenericUnixFontDatabase())
 {
-    QBsScreen *mPrimaryScreen = new QBsScreen();
+    QBsScreen* mPrimaryScreen = new QBsScreen();
 
     mPrimaryScreen->mGeometry = QRect(0, 0, 240, 320);
     mPrimaryScreen->mDepth = 32;
@@ -71,29 +70,28 @@ bool QBsIntegration::hasCapability(QPlatformIntegration::Capability cap) const
     }
 }
 
-QPixmapData *QBsIntegration::createPixmapData(QPixmapData::PixelType type) const
+QPixmapData* QBsIntegration::createPixmapData(QPixmapData::PixelType type) const
 {
     return new QRasterPixmapData(type);
 }
 
-QPlatformWindow *QBsIntegration::createPlatformWindow(QWidget *widget, WId winId) const
+QPlatformWindow* QBsIntegration::createPlatformWindow(QWidget *widget, WId winId) const
 {
     Q_UNUSED(winId);
     return new QPlatformWindow(widget);
 }
 
-QWindowSurface *QBsIntegration::createWindowSurface(QWidget *widget, WId winId) const
+QWindowSurface* QBsIntegration::createWindowSurface(QWidget *widget, WId winId) const
 {
     Q_UNUSED(winId);
-    QGraphicsView *view = qobject_cast<QGraphicsView *>(widget);
+    QGraphicsView* view = qobject_cast<QGraphicsView *>(widget);
 
     if (view) 
         return new QBsWindowSurface(widget);
-    else
-        return new QMinimalWindowSurface(widget);
+    return new QMinimalWindowSurface(widget);
 }
 
-QPlatformFontDatabase *QBsIntegration::fontDatabase() const
+QPlatformFontDatabase* QBsIntegration::fontDatabase() const
 {
     return mFontDb;
 }
