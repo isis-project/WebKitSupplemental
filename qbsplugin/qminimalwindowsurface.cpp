@@ -50,16 +50,16 @@ QT_BEGIN_NAMESPACE
 QMinimalWindowSurface::QMinimalWindowSurface(QWidget *window)
     : QWindowSurface(window)
 {
-    //qDebug() << "QMinimalWindowSurface::QMinimalWindowSurface:" << (long)this;
+// qDebug() << "QMinimalWindowSurface::QMinimalWindowSurface:" << (long)this;
 }
 
 QMinimalWindowSurface::~QMinimalWindowSurface()
 {
 }
 
-QPaintDevice *QMinimalWindowSurface::paintDevice()
+QPaintDevice* QMinimalWindowSurface::paintDevice()
 {
-    //qDebug() << "QMinimalWindowSurface::paintDevice";
+// qDebug() << "QMinimalWindowSurface::paintDevice";
     return &mImage;
 }
 
@@ -79,7 +79,7 @@ void QMinimalWindowSurface::flush(QWidget *widget, const QRegion &region, const 
 
 void QMinimalWindowSurface::resize(const QSize &size)
 {
-    //qDebug() << "QMinimalWindowSurface::setGeometry:" << (long)this << rect;
+// qDebug() << "QMinimalWindowSurface::setGeometry:" << (long)this << rect;
     QWindowSurface::resize(size);
     QImage::Format format = QApplicationPrivate::platformIntegration()->screens().first()->format();
     if (mImage.size() != size)

@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef QWEBKITPLATFORMPLUGIN_H
-#define QWEBKITPLATFORMPLUGIN_H
+#ifndef qwebkitplatformplugin_h
+#define qwebkitplatformplugin_h
 
 /*
  *  Warning: The contents of this file is not  part of the public QtWebKit API
@@ -38,7 +38,7 @@
 
 class QWebSelectData {
 public:
-    virtual ~QWebSelectData() {}
+    virtual ~QWebSelectData() { }
 
     enum ItemType { Option, Group, Separator };
 
@@ -58,7 +58,7 @@ public:
 class QWebSelectMethod : public QObject {
     Q_OBJECT
 public:
-    virtual ~QWebSelectMethod() {}
+    virtual ~QWebSelectMethod() { }
 
     virtual void show(const QWebSelectData&) = 0;
     virtual void hide() = 0;
@@ -72,7 +72,7 @@ Q_SIGNALS:
 
 class QWebNotificationData {
 public:
-    virtual ~QWebNotificationData() {}
+    virtual ~QWebNotificationData() { }
 
     virtual const QString title() const = 0;
     virtual const QString message() const = 0;
@@ -83,8 +83,8 @@ public:
 class QWebNotificationPresenter : public QObject {
     Q_OBJECT
 public:
-    QWebNotificationPresenter() {}
-    virtual ~QWebNotificationPresenter() {}
+    QWebNotificationPresenter() { }
+    virtual ~QWebNotificationPresenter() { }
 
     virtual void showNotification(const QWebNotificationData*) = 0;
     
@@ -96,8 +96,8 @@ Q_SIGNALS:
 class QWebHapticFeedbackPlayer: public QObject {
     Q_OBJECT
 public:
-    QWebHapticFeedbackPlayer() {}
-    virtual ~QWebHapticFeedbackPlayer() {}
+    QWebHapticFeedbackPlayer() { }
+    virtual ~QWebHapticFeedbackPlayer() { }
 
     enum HapticStrength {
         None, Weak, Medium, Strong
@@ -113,7 +113,7 @@ public:
 class QWebTouchModifier : public QObject {
     Q_OBJECT
 public:
-    virtual ~QWebTouchModifier() {}
+    virtual ~QWebTouchModifier() { }
 
     enum PaddingDirection {
         Up, Right, Down, Left
@@ -126,8 +126,8 @@ public:
 class QWebFullScreenVideoHandler : public QObject {
     Q_OBJECT
 public:
-    QWebFullScreenVideoHandler() {}
-    virtual ~QWebFullScreenVideoHandler() {}
+    QWebFullScreenVideoHandler() { }
+    virtual ~QWebFullScreenVideoHandler() { }
     virtual bool requiresFullScreenForVideoPlayback() const = 0;
 
 Q_SIGNALS:
@@ -165,7 +165,7 @@ public:
 
 class QWebKitPlatformPlugin {
 public:
-    virtual ~QWebKitPlatformPlugin() {}
+    virtual ~QWebKitPlatformPlugin() { }
 
     enum Extension {
         MultipleSelections,
@@ -184,4 +184,4 @@ QT_BEGIN_NAMESPACE
 Q_DECLARE_INTERFACE(QWebKitPlatformPlugin, "com.nokia.Qt.WebKit.PlatformPlugin/1.8");
 QT_END_NAMESPACE
 
-#endif // QWEBKITPLATFORMPLUGIN_H
+#endif // qwebkitplatformplugin_h

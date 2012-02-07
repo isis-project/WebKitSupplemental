@@ -40,19 +40,18 @@
 **
 ****************************************************************************/
 
-#ifndef QPLATFORMINTEGRATION_BS_H
-#define QPLATFORMINTEGRATION_BS_H
+#ifndef qbsintegration_h
+#define qbsintegration_h
 
 #include <QtGui/QPlatformIntegration>
 #include <QtGui/QPlatformScreen>
 
 QT_BEGIN_NAMESPACE
 
-class QBsScreen : public QPlatformScreen
-{
+class QBsScreen : public QPlatformScreen {
 public:
     QBsScreen()
-        : mDepth(32), mFormat(QImage::Format_ARGB32_Premultiplied) {}
+        : mDepth(32), mFormat(QImage::Format_ARGB32_Premultiplied) { }
 
     QRect geometry() const { return mGeometry; }
     int depth() const { return mDepth; }
@@ -65,16 +64,15 @@ public:
     QSize mPhysicalSize;
 };
 
-class QBsIntegration : public QPlatformIntegration 
-{
+class QBsIntegration : public QPlatformIntegration {
 public:
     QBsIntegration();
 
-    bool hasCapability(QPlatformIntegration::Capability cap) const;
+    bool hasCapability(QPlatformIntegration::Capability) const;
 
-    QPixmapData *createPixmapData(QPixmapData::PixelType type) const;
-    QPlatformWindow *createPlatformWindow(QWidget *widget, WId winId) const;
-    QWindowSurface *createWindowSurface(QWidget *widget, WId winId) const;
+    QPixmapData* createPixmapData(QPixmapData::PixelType) const;
+    QPlatformWindow* createPlatformWindow(QWidget*, WId winId) const;
+    QWindowSurface* createWindowSurface(QWidget*, WId winId) const;
     QPlatformFontDatabase* fontDatabase() const;
     QList<QPlatformScreen *> screens() const { return mScreens; }
 

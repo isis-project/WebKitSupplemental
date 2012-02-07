@@ -90,28 +90,26 @@ bool WebSettings::initSettings(const QVariantMap &settingsMap)
         QCoreApplication::setOrganizationName(organizationName);
     }
 
-    QString userScopeFile = QString ("/var/tmp/%1/%2.conf").arg(organizationName).arg(applicationName);
+    QString userScopeFile = QString("/var/tmp/%1/%2.conf").arg(organizationName).arg(applicationName);
 
     if (QFile::exists(userScopeFile))
         QFile::remove(userScopeFile);
 
-    QString systemScopeFile = QString ("/etc/palm/%1.conf").arg(applicationName);
+    QString systemScopeFile = QString("/etc/palm/%1.conf").arg(applicationName);
     qDebug("webOS::WebSettings::initSettings: loading settings from: %s", qPrintable(systemScopeFile));
 
-    QSettings systemSettings (systemScopeFile, QSettings::NativeFormat);
+    QSettings systemSettings(systemScopeFile, QSettings::NativeFormat);
     QSettings settings;
 
     // add all values from settingsMap
     QVariantMap::const_iterator it;
-    for (it = settingsMap.constBegin(); it != settingsMap.constEnd(); ++it) {
+    for (it = settingsMap.constBegin(); it != settingsMap.constEnd(); ++it)
         settings.setValue(it.key(), it.value());
-    }
 
     // override settingsMap values with system conf values
     QStringList keyList = systemSettings.allKeys();
-    foreach (QString key, keyList) {
+    foreach (QString key, keyList)
         settings.setValue(key, systemSettings.value(key));
-    }
 
     localSettingsLoaded = true;
     return true;
@@ -125,7 +123,7 @@ bool WebSettings::initWebSettings()
 
     qDebug("webOS::WebSettings::initWebSettings");
 
-    QWebSettings *globalWebSettings = QWebSettings::globalSettings();
+    QWebSettings* globalWebSettings = QWebSettings::globalSettings();
     QSettings settings;
 
     if (settings.value(WEB_SETTINGS_KEY_PERSISTENT_STORAGE).toBool()) {
@@ -137,13 +135,13 @@ bool WebSettings::initWebSettings()
             globalWebSettings->setAttribute(QWebSettings::OfflineWebApplicationCacheEnabled, true);
             globalWebSettings->setIconDatabasePath(path);
             globalWebSettings->setOfflineWebApplicationCachePath(path);
-            globalWebSettings->setOfflineStoragePath(QString ("%1/Databases").arg(path));
-            globalWebSettings->setLocalStoragePath(QString ("%1/LocalStorage").arg(path));
+            globalWebSettings->setOfflineStoragePath(QString("%1/Databases").arg(path));
+            globalWebSettings->setLocalStoragePath(QString("%1/LocalStorage").arg(path));
         }
     }
 
     if (settings.contains(WEB_SETTINGS_KEY_AUTO_LOAD_IMAGES))
-        globalWebSettings->setAttribute(QWebSettings::AutoLoadImages,settings.value(WEB_SETTINGS_KEY_AUTO_LOAD_IMAGES).toBool());
+        globalWebSettings->setAttribute(QWebSettings::AutoLoadImages, settings.value(WEB_SETTINGS_KEY_AUTO_LOAD_IMAGES).toBool());
 
     if (settings.contains(WEB_SETTINGS_KEY_DNS_PREFETCH))
         globalWebSettings->setAttribute(QWebSettings::DnsPrefetchEnabled, settings.value(WEB_SETTINGS_KEY_DNS_PREFETCH).toBool());
@@ -232,9 +230,9 @@ bool WebSettings::initWebSettings()
     if (settings.contains(WEB_SETTINGS_KEY_MAX_PAGES_IN_CACHE))
         globalWebSettings->setMaximumPagesInCache(settings.value(WEB_SETTINGS_KEY_MAX_PAGES_IN_CACHE).toInt());
 
-    if (settings.contains(WEB_SETTINGS_KEY_OBJ_CACHE_CAPACITY_MIN) &&
-            settings.contains(WEB_SETTINGS_KEY_OBJ_CACHE_CAPACITY_MAX) &&
-            settings.contains(WEB_SETTINGS_KEY_OBJ_CACHE_CAPACITY_OVERALL)) {
+    if (settings.contains(WEB_SETTINGS_KEY_OBJ_CACHE_CAPACITY_MIN) 
+            && settings.contains(WEB_SETTINGS_KEY_OBJ_CACHE_CAPACITY_MAX) 
+            && settings.contains(WEB_SETTINGS_KEY_OBJ_CACHE_CAPACITY_OVERALL)) {
         globalWebSettings->setObjectCacheCapacities(
             stringToBytes(settings.value(WEB_SETTINGS_KEY_OBJ_CACHE_CAPACITY_MIN).toString()),
             stringToBytes(settings.value(WEB_SETTINGS_KEY_OBJ_CACHE_CAPACITY_MAX).toString()),
@@ -250,7 +248,7 @@ bool WebSettings::initWebSettings()
     QStringList supplementalPath;
 
     if (settings.contains(WEB_SETTINGS_KEY_PLUGIN_SUPPLEMENTAL_PATH))
-        supplementalPath.append (settings.value(WEB_SETTINGS_KEY_PLUGIN_SUPPLEMENTAL_PATH).toString());
+        supplementalPath.append(settings.value(WEB_SETTINGS_KEY_PLUGIN_SUPPLEMENTAL_PATH).toString());
 
     if (settings.contains(WEB_SETTINGS_KEY_PLUGIN_SUPPLEMENTAL_USER_PATH))
         supplementalPath.append(settings.value(WEB_SETTINGS_KEY_PLUGIN_SUPPLEMENTAL_USER_PATH).toString());
@@ -264,11 +262,11 @@ bool WebSettings::initWebSettings()
 quint64 WebSettings::stringToBytes(const QString &srcString)
 {
     quint64 bytes = 1;
-    QString subString (srcString);
+    QString subString(srcString);
 
-    if(srcString.contains(QChar('k'), Qt::CaseInsensitive) ||
-            srcString.contains(QChar('m'), Qt::CaseInsensitive) ||
-            srcString.contains(QChar('g'), Qt::CaseInsensitive)) {
+    if (srcString.contains(QChar('k'), Qt::CaseInsensitive) 
+            || srcString.contains(QChar('m'), Qt::CaseInsensitive) 
+            || srcString.contains(QChar('g'), Qt::CaseInsensitive)) {
 
         bytes = 1024;
         int pos = srcString.indexOf(QChar('k'), 0, Qt::CaseInsensitive);

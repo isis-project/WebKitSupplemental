@@ -17,8 +17,9 @@
 LICENSE@@@ */
 
 #include "webosmisc.h"
-#include <QtCore/QSettings>
+
 #include <QColor>
+#include <QtCore/QSettings>
 
 namespace webOS {
 

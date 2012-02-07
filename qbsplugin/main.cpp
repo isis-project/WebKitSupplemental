@@ -40,17 +40,16 @@
 **
 ****************************************************************************/
 
+#include "qbsintegration.h"
 
 #include <QtGui/QPlatformIntegrationPlugin>
-#include "qbsintegration.h"
 
 QT_BEGIN_NAMESPACE
 
-class QBsIntegrationPlugin : public QPlatformIntegrationPlugin
-{
+class QBsIntegrationPlugin : public QPlatformIntegrationPlugin {
 public:
     QStringList keys() const;
-    QPlatformIntegration *create(const QString&, const QStringList&);
+    QPlatformIntegration* create(const QString&, const QStringList&);
 };
 
 QStringList QBsIntegrationPlugin::keys() const
@@ -60,7 +59,7 @@ QStringList QBsIntegrationPlugin::keys() const
     return list;
 }
 
-QPlatformIntegration *QBsIntegrationPlugin::create(const QString& system, const QStringList& paramList)
+QPlatformIntegration* QBsIntegrationPlugin::create(const QString& system, const QStringList& paramList)
 {
     Q_UNUSED(paramList);
     if (system.toLower() == "qbs")
