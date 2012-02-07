@@ -22,7 +22,7 @@ LICENSE@@@ */
 
 extern "C" {
 
-QBsDriver* qpa_qbs_register_client(QWidget *window, QBsClient* client) __attribute__ ((visibility("default")));
+QBsDriver* qpa_qbs_register_client(QWidget *window, QBsClient*) __attribute__((visibility("default")));
 
 QBsDriver* qpa_qbs_register_client(QWidget *window, QBsClient* client)
 {
@@ -117,35 +117,33 @@ void QBsWindowSurface::updateBuffer(const QSize size, const QRegion &region, uns
     }
 
     if (!sourceRegion.subtract(region).isEmpty()) {
-//qDebug() << "Copy region:" << sourceRegion.boundingRect() << "not in" << region.boundingRect();
+    // qDebug() << "Copy region:" << sourceRegion.boundingRect() << "not in" << region.boundingRect();
         copyRegion(target, size, source, size, sourceRegion);
     }
 }
 
 QPaintDevice* QBsWindowSurface::paintDevice()
 {
-//qDebug() << "QBsWindowSurface::paintDevice()";
+    // qDebug() << "QBsWindowSurface::paintDevice()";
     return &m_surface;
 }
 
 void QBsWindowSurface::beginPaint(const QRegion &region)
 {
-//qDebug() << "QBsWindowSurface::beginPaint";
+    // qDebug() << "QBsWindowSurface::beginPaint";
     if (m_bufferActive0 && m_buffer0 && m_buffer1) {
 
         m_surface = QImage(m_buffer0, size().width(), size().height(), QImage::Format_ARGB32_Premultiplied);
 
         updateBuffer(size(), region, m_buffer0, m_buffer1, m_region1);
         m_region0 = region;
-    }
-    else if (m_bufferActive1 && m_buffer0 && m_buffer1) {
+    } else if (m_bufferActive1 && m_buffer0 && m_buffer1) {
 
         m_surface = QImage(m_buffer1, size().width(), size().height(), QImage::Format_ARGB32_Premultiplied);
 
         updateBuffer(size(), region, m_buffer1, m_buffer0, m_region0);
         m_region1 = region;
-    }
-    else {
+    } else {
 
         m_surface = m_scratch;
 
@@ -158,13 +156,13 @@ void QBsWindowSurface::beginPaint(const QRegion &region)
 
 void QBsWindowSurface::endPaint(const QRegion &region)
 {
-//qDebug() << "QBsWindowSurface::endPaint";
+    // qDebug() << "QBsWindowSurface::endPaint";
     QWindowSurface::endPaint(region);
 }
 
 void QBsWindowSurface::flush(QWidget *widget, const QRegion &region, const QPoint &offset)
 {
-//qDebug() << "QBsWindowSurface::flush";
+    // qDebug() << "QBsWindowSurface::flush";
     Q_UNUSED(widget);
     Q_UNUSED(region);
     Q_UNUSED(offset);
@@ -175,14 +173,13 @@ void QBsWindowSurface::flush(QWidget *widget, const QRegion &region, const QPoin
             m_client->flushBuffer(0);
         else if (m_bufferActive1)
             m_client->flushBuffer(1);
-    }
-    else
+    } else
        qDebug() << " *** ERROR: NO Client";
 }
 
 void QBsWindowSurface::resize(const QSize &size)
 {
-//qDebug() << "QBsWindowSurface::resize:" << size;
+    // qDebug() << "QBsWindowSurface::resize:" << size;
     QWindowSurface::resize(size);
 
     m_scratch = QImage(size, QImage::Format_ARGB32_Premultiplied);
@@ -190,7 +187,7 @@ void QBsWindowSurface::resize(const QSize &size)
 
 void QBsWindowSurface::setBuffers(unsigned char* buffer0, int length0, unsigned char* buffer1, int length1)
 {
-//qDebug() << "QBsWindowSurface::setBuffers()";
+    // qDebug() << "QBsWindowSurface::setBuffers()";
     m_buffer0 = buffer0;
     m_bufferLength0 = length0;
     m_bufferActive0 = false;
@@ -205,8 +202,8 @@ void QBsWindowSurface::setBuffers(unsigned char* buffer0, int length0, unsigned 
 
 void QBsWindowSurface::setBufferState(int buffer, bool active)
 {
-//qDebug() << "QBsWindowSurface::setBufferState(" << buffer << (active ? "TRUE" : "FALSE") << ")";
-    if (buffer == 0)
+    // qDebug() << "QBsWindowSurface::setBufferState(" << buffer << (active ? "TRUE" : "FALSE") << ")";
+    if (buffer == (int)0)
         m_bufferActive0 = active;
     else if (buffer == 1)
         m_bufferActive1 = active;
@@ -214,7 +211,7 @@ void QBsWindowSurface::setBufferState(int buffer, bool active)
 
 void QBsWindowSurface::releaseBuffers()
 {
-//qDebug() << "QBsWindowSurface::releaseBuffers()";
+    // qDebug() << "QBsWindowSurface::releaseBuffers()";
     setBuffers(0, 0, 0, 0);
 }
 

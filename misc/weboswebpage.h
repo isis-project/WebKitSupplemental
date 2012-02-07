@@ -40,8 +40,8 @@ public:
 
 protected:
     virtual QString userAgentForUrl(const QUrl&) const;
-    virtual QWebPage* createWindow(WebWindowType type);
-    virtual bool acceptNavigationRequest(QWebFrame *frame, const QNetworkRequest &request, NavigationType type);
+    virtual QWebPage* createWindow(WebWindowType);
+    virtual bool acceptNavigationRequest(QWebFrame*, const QNetworkRequest&, NavigationType);
     virtual void javaScriptConsoleMessage(const QString&, int, const QString&);
 
 private:
@@ -52,7 +52,7 @@ private:
 
 class WebOSWebPageCreator {
 public:
-     virtual WebOSWebPage* createWebOSWebPage(QWebPage::WebWindowType type) = 0;
+     virtual WebOSWebPage* createWebOSWebPage(QWebPage::WebWindowType) = 0;
 protected:
     WebOSWebPageCreator() {;}
     ~WebOSWebPageCreator() {;}
@@ -63,7 +63,7 @@ private:
 
 class WebOSWebPageNavigator {
 public:
-     virtual bool interceptLink (const QUrl &url) = 0;
+     virtual bool interceptLink(const QUrl&) = 0;
 protected:
     WebOSWebPageNavigator() {;}
     ~WebOSWebPageNavigator() {;}

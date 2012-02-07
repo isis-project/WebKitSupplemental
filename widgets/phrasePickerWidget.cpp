@@ -16,13 +16,14 @@
 *
 LICENSE@@@ */
 
-#include <QPainter>
+#include "phrasePickerWidget.h"
+
+#include <QApplication>
+#include <QGraphicsPixmapItem>
 #include <QGraphicsScene>
 #include <QGraphicsSceneMouseEvent>
-#include <QGraphicsPixmapItem>
-#include <QApplication>
+#include <QPainter>
 
-#include "phrasePickerWidget.h"
 
 const char kLeftBGFilename[]            = "ate-left.png";
 const char kRightBGFilename[]           = "ate-right.png";
@@ -47,7 +48,7 @@ const int kArrowUpPadding       = 7;
 
 // durations and framerate
 const int kDragTimeout          = 250; // milliseconds without drag updates before resetting drag velocity measurements
-const int kAnimFrameRate        = 30;  // fps
+const int kAnimFrameRate        = 30; // fps
 const int kFadeDuration         = 250; // in milliseconds
 const qreal kOpacityIncrement   = qreal(kAnimFrameRate) / kFadeDuration;
 const qreal kDragCoefficient    = .9;
@@ -62,56 +63,46 @@ void PickerItem::mousePress(QGraphicsSceneMouseEvent* event)
 void PickerItem::mouseRelease(QGraphicsSceneMouseEvent* event)
 {
     Q_UNUSED(event);
-    if (m_clickInProgress)
-    {
+    if (m_clickInProgress) {
         m_clickInProgress = false;
         emit itemClicked();
-    }
-    else if (m_dragInProgress)
-    {
+    } else if (m_dragInProgress) {
         m_dragInProgress = false;
         emit dragFinished();
     }
 }
 
 void PickerItem::mouseMove(QGraphicsSceneMouseEvent *event)
- {
+{
     // check if the user has started a drag using screen coordinates
     const QPoint currPosScreen(event->screenPos());
     const QPoint clickPosScreen(event->buttonDownScreenPos(Qt::LeftButton));
 
-    if (m_clickInProgress && QLineF(currPosScreen, clickPosScreen).length() >= QApplication::startDragDistance())
-    {
+    if (m_clickInProgress && QLineF(currPosScreen, clickPosScreen).length() >= QApplication::startDragDistance()) {
         m_clickInProgress = false;
         m_dragInProgress = true;
     }
 
-    if (m_dragInProgress)
-    {
+    if (m_dragInProgress) {
         // check the actual drag distance using *scene* coordinates
         const QPointF currPosScene(event->scenePos());
         const QPointF clickPosScene(event->buttonDownScenePos(Qt::LeftButton));
         emit dragUpdate(currPosScene.x() - clickPosScene.x());
     }
- }
+}
 
 // <apm> work-around for QTBUG-15477 here: https://bugreports.qt.nokia.com/browse/QTBUG-15477
 // please test mouse events without this function periodically, and remove this when possible
 bool PickerItem::scene(QEvent *event)
 {
     bool accepted = false;
-    if (event->type() == QEvent::GraphicsSceneMousePress)
-    {
+    if (event->type() == QEvent::GraphicsSceneMousePress) {
         mousePress(static_cast<QGraphicsSceneMouseEvent *>(event));
         accepted = true;
-    }
-    else if (event->type() == QEvent::GraphicsSceneMouseRelease)
-    {
+    } else if (event->type() == QEvent::GraphicsSceneMouseRelease) {
         mouseRelease(static_cast<QGraphicsSceneMouseEvent *>(event));
         accepted = true;
-    }
-    else if (event->type() == QEvent::GraphicsSceneMouseMove)
-    {
+    } else if (event->type() == QEvent::GraphicsSceneMouseMove) {
         mouseMove(static_cast<QGraphicsSceneMouseEvent *>(event));
         accepted = true;
     }
@@ -152,7 +143,7 @@ PickerGraphic::PickerGraphic(const QPixmap& image, PhrasePickerWidget* pickerPar
 
 PhrasePickerWidget::PhrasePickerWidget(QObject* parent, int maxWidth, QString pathToImageDir, QGraphicsItem* graphicParent)
     : QObject(parent), QGraphicsPixmapItem(graphicParent), m_textWidth(0), m_minBGWidth(0), m_BGWidth(0), m_maxWidth(maxWidth),
-      m_scrollable(false), m_scrollPosition(0), m_lastDelta(0),m_scrollTimerId(0), m_velocity(0.f), m_deltaSampleSum(0), m_totalTimeThisSample(0),
+      m_scrollable(false), m_scrollPosition(0), m_lastDelta(0), m_scrollTimerId(0), m_velocity(0.f), m_deltaSampleSum(0), m_totalTimeThisSample(0),
       m_hasRenderedWithCurrentPhrases(false), m_lastArrowDir(arrowDown), m_lastArrowOffset(0), m_leftScrollFadeItem(0),
       m_rightScrollFadeItem(0), m_phraseGroup(0), m_fadeInTimerId(0), m_fadeOutTimerId(0), m_opacity(0), m_fadeEffect(0)
 {
@@ -167,8 +158,7 @@ PhrasePickerWidget::PhrasePickerWidget(QObject* parent, int maxWidth, QString pa
     succeeded = succeeded && leftScrollFade.load(pathToImageDir + kLeftFadeScrollFilename);
     succeeded = succeeded && rightScrollFade.load(pathToImageDir + kRightFadeScrollFilename);
 
-    if (succeeded)
-    {
+    if (succeeded) {
         m_leftScrollFadeItem = new QGraphicsPixmapItem(leftScrollFade, this, scene());
         m_leftScrollFadeItem->setZValue(1);
         m_leftScrollFadeItem->setEnabled(false);
@@ -184,21 +174,19 @@ PhrasePickerWidget::PhrasePickerWidget(QObject* parent, int maxWidth, QString pa
     Q_ASSERT_X(succeeded, "PhrasePickerWidet constructor", "image load failed. Verify that pathToImageDir is correct.");
     Q_ASSERT(m_arrowDownBG.width() == m_arrowUpBG.width() && m_arrowDownBG.height() == m_arrowUpBG.height());
 
-    if (succeeded)
-    {
+    if (succeeded) {
         m_minBGWidth =  m_leftBG.width() + m_arrowDownBG.width() + m_rightBG.width();
         succeeded = m_maxWidth >= m_minBGWidth;
         Q_ASSERT_X(succeeded, "PhrasePickerWidet constructor", "maxWidth specified is below the minimum width indicated by the background images");
     }
 
-    if(succeeded)
-    {
+    if (succeeded) {
         m_fadeEffect = new QGraphicsOpacityEffect(this);
         QGraphicsItem::setVisible(false);
         m_opacity = 0;
         m_fadeEffect->setOpacity(m_opacity);
         setGraphicsEffect(m_fadeEffect);
-        
+
 
         // clip child text elements to background
         setFlags(QGraphicsItem::ItemClipsChildrenToShape);
@@ -207,8 +195,7 @@ PhrasePickerWidget::PhrasePickerWidget(QObject* parent, int maxWidth, QString pa
 
 void PhrasePickerWidget::addPhrase(QString phrase)
 {
-    if (m_phraseList.size())
-    {  // if there are existing phrases in the list, prepend a divider element.
+    if (m_phraseList.size()) { // if there are existing phrases in the list, prepend a divider element.
         PickerGraphic* dividerItem = new PickerGraphic(m_dividerImage, this);
         m_phraseList << dividerItem;
     }
@@ -226,24 +213,20 @@ void PhrasePickerWidget::clearPhraseList()
 
     // kill all the timers
     int* timers[] = {&m_scrollTimerId, &m_fadeInTimerId, &m_fadeOutTimerId};
-    for (unsigned int timerIndex = 0; timerIndex < sizeof(timers) / sizeof(int*); ++timerIndex)
-    {
+    for (unsigned int timerIndex = 0; timerIndex < sizeof(timers) / sizeof(int*); ++timerIndex) {
         int* currTimer = timers[timerIndex];
-        if (*currTimer != 0)
-        {
+        if (*currTimer != (int)0) {
             killTimer(*currTimer);
             *currTimer = 0;
         }
     }
 
-    if (m_phraseGroup)
-    {
+    if (m_phraseGroup) {
         m_phraseGroup->scene()->destroyItemGroup(m_phraseGroup);
         m_phraseGroup = 0;
     }
 
-    foreach (QGraphicsItem* item, m_phraseList)
-    {
+    foreach (QGraphicsItem* item, m_phraseList) {
         // remove phrase items from the scene and destroy them
         scene()->removeItem(item);
 
@@ -262,8 +245,7 @@ void PhrasePickerWidget::clearPhraseList()
 
 void PhrasePickerWidget::showAt(QPointF pointAt, const QRectF& drawableArea, int areaHeight)
 {
-    if (!m_phraseList.isEmpty())
-    {
+    if (!m_phraseList.isEmpty()) {
         QGraphicsItem::setVisible(true);
         // if the phrase picker is still fading out somewhere else, kill that animation and start from 0
         if (m_fadeOutTimerId)
@@ -271,22 +253,19 @@ void PhrasePickerWidget::showAt(QPointF pointAt, const QRectF& drawableArea, int
         else if (m_fadeInTimerId)
             killTimer(m_fadeInTimerId);
 
-        if (m_opacity)
-        { // always start over at opacity 0
+        if (m_opacity) { // always start over at opacity 0
             m_opacity = 0;
             m_fadeEffect->setOpacity(m_opacity);
         }
 
         // only draw the picker if the point is within the drawable area
-        if (drawableArea.contains(pointAt))
-        {
+        if (drawableArea.contains(pointAt)) {
             m_scrollPosition = 0;
             m_lastDelta = 0;
 
             // determine whether there's enough room to render the phrase picker above pointAt
             ArrowDirection pointDirection = arrowDown;
-            if (pointAt.y() - drawableArea.top() < m_arrowDownBG.height() - kTopBorderAllowance)
-            {
+            if (pointAt.y() - drawableArea.top() < m_arrowDownBG.height() - kTopBorderAllowance) {
                 pointDirection = arrowUp;
                 pointAt.ry() += areaHeight +  m_arrowDownBG.height();
             }
@@ -300,33 +279,27 @@ void PhrasePickerWidget::showAt(QPointF pointAt, const QRectF& drawableArea, int
             Q_ASSERT_X(currScene, "PhrasePickerWidget::renderPhrasesToImage", "PhrasePickerWidget must be added to the scene before phrases are added to it.");
 
             // if the text hasn't been shown before, place it properly record its size
-            if (currScene && !m_hasRenderedWithCurrentPhrases)
-            {
+            if (currScene && !m_hasRenderedWithCurrentPhrases) {
                 // remove any existing group from prior render
-                if (m_phraseGroup)
-                {
+                if (m_phraseGroup) {
                     currScene->destroyItemGroup(m_phraseGroup);
                     m_phraseGroup = 0;
                 }
 
                 // place the text items correctly
-                if (m_phraseList.size())
-                {
+                if (m_phraseList.size()) {
                     // create the group first and then position children within the group
                     m_phraseGroup = currScene->createItemGroup(m_phraseList);
                     m_phraseGroup->setParentItem(this);
 
                     m_textWidth = kPhraseXBorder;
-                    foreach (QGraphicsItem* currPhrase, m_phraseList)
-                    {
+                    foreach (QGraphicsItem* currPhrase, m_phraseList) {
                         currPhrase->setX(m_textWidth);
                         currPhrase->setY(currPhrase->type() == PickerItem::PickerPhraseType ? kPhraseYBorder : kTopBorderAllowance);
                         m_textWidth += currPhrase->boundingRect().width() + kPhraseXSpacing;
                     }
                     m_textWidth += (kPhraseXBorder - kPhraseXSpacing); // replace the final spacing width with the proper border width
-                }
-                else
-                {
+                } else {
                     m_textWidth = 0;
                     m_scrollable = false;
                 }
@@ -357,8 +330,7 @@ void PhrasePickerWidget::showAt(QPointF pointAt, const QRectF& drawableArea, int
             m_leftScrollFadeItem->setEnabled(false);
 
             // draw right-scroll fade if there are phrases past the boundary
-            if (m_scrollable)
-            {
+            if (m_scrollable) {
                 m_rightScrollFadeItem->setVisible(true);
                 m_rightScrollFadeItem->setEnabled(true);
             }
@@ -379,8 +351,7 @@ void PhrasePickerWidget::onPhraseClicked(QString phrase)
     QGraphicsItem::setEnabled(false);
 
     // if we're still fading in, stop that animation
-    if (m_fadeInTimerId)
-    {
+    if (m_fadeInTimerId) {
         killTimer(m_fadeInTimerId);
         m_fadeInTimerId = 0;
     }
@@ -392,8 +363,7 @@ void PhrasePickerWidget::onPhraseClicked(QString phrase)
 
 void PhrasePickerWidget::onPhraseDragStarted()
 {
-    if (m_scrollTimerId)
-    { // kill any current velocity when a new drag is started
+    if (m_scrollTimerId) { // kill any current velocity when a new drag is started
         killTimer(m_scrollTimerId);
         m_scrollTimerId = 0;
     }
@@ -406,8 +376,7 @@ void PhrasePickerWidget::onPhraseDragUpdate(qreal xDelta)
     const int calculatedX = xDelta + m_scrollPosition;
     const int rightEdge = m_BGWidth - m_textWidth;
 
-    if (m_scrollable)
-    {
+    if (m_scrollable) {
         const bool scrolledFullRight = calculatedX >= 0;
         const bool scrolledFullLeft = calculatedX <= rightEdge;
 
@@ -416,8 +385,7 @@ void PhrasePickerWidget::onPhraseDragUpdate(qreal xDelta)
         else if (scrolledFullLeft)
             xDelta = rightEdge - m_scrollPosition;
 
-        if (m_scrollTimerId && (scrolledFullLeft || scrolledFullRight))
-        { // kill any current velocity when an edge is hit
+        if (m_scrollTimerId && (scrolledFullLeft || scrolledFullRight)) { // kill any current velocity when an edge is hit
             killTimer(m_scrollTimerId);
             m_scrollTimerId = 0;
         }
@@ -445,10 +413,8 @@ void PhrasePickerWidget::onPhraseDragFinished()
     // do one last update to make sure the user hasn't waited ages before releasing
     updateDragVelocity(m_lastDelta);
 
-    if (m_totalTimeThisSample)
-    {
-        if (m_scrollTimerId)
-        {
+    if (m_totalTimeThisSample) {
+        if (m_scrollTimerId) {
             killTimer(m_scrollTimerId);
             m_scrollTimerId = 0;
         }
@@ -463,42 +429,33 @@ void PhrasePickerWidget::onPhraseDragFinished()
 void PhrasePickerWidget::updateDragVelocity(int xDelta)
 {
     int msElapsed = m_dragTimer.restart();
-    if (msElapsed > kDragTimeout)
-    { // reset the sampling if the user has paused too long between drag events
+    if (msElapsed > kDragTimeout) { // reset the sampling if the user has paused too long between drag events
         m_deltaSampleSum = 0;
         m_totalTimeThisSample = 0;
-    }
-    else if ((xDelta > m_lastDelta && m_deltaSampleSum < 0) || (xDelta < m_lastDelta && m_deltaSampleSum > 0))
-    { // reset the sampling if the user has changed direction from the current motion
+    } else if ((xDelta > m_lastDelta && m_deltaSampleSum < 0) || (xDelta < m_lastDelta && m_deltaSampleSum > 0)) {
+        // reset the sampling if the user has changed direction from the current motion
         m_deltaSampleSum = 0;
         m_totalTimeThisSample = 0;
-    }
-    else
-    {
+    } else {
         m_deltaSampleSum += xDelta - m_lastDelta;
         m_totalTimeThisSample += msElapsed;
     }
 }
 
-void PhrasePickerWidget::timerEvent (QTimerEvent* event)
+void PhrasePickerWidget::timerEvent(QTimerEvent* event)
 {
-    if (event->timerId() == m_fadeInTimerId)
-    {
+    if (event->timerId() == m_fadeInTimerId) {
         m_opacity += kOpacityIncrement;
-        if (m_opacity > 1)
-        {
+        if (m_opacity > 1) {
             m_opacity = 1;
             killTimer(m_fadeInTimerId);
             m_fadeInTimerId = 0;
         }
         m_fadeEffect->setOpacity(m_opacity);
 
-    }
-    else if (event->timerId() == m_fadeOutTimerId)
-    {
+    } else if (event->timerId() == m_fadeOutTimerId) {
         m_opacity -= kOpacityIncrement;
-        if (m_opacity < 0)
-        {
+        if (m_opacity < 0) {
             m_opacity = 0;
             killTimer(m_fadeOutTimerId);
             m_fadeOutTimerId = 0;
@@ -506,22 +463,18 @@ void PhrasePickerWidget::timerEvent (QTimerEvent* event)
         }
 
         m_fadeEffect->setOpacity(m_opacity);
-    }
-    else if (event->timerId() == m_scrollTimerId)
-    {
+    } else if (event->timerId() == m_scrollTimerId) {
         qreal deltaX = m_velocity / kAnimFrameRate;
         onPhraseDragUpdate(deltaX);
         m_scrollPosition += m_lastDelta;
         m_velocity *= kDragCoefficient;
 
-        if (deltaX > -1 && deltaX < 1)
-        {
+        if (deltaX > -1 && deltaX < 1) {
             m_velocity = 0;
             killTimer(m_scrollTimerId);
             m_scrollTimerId = 0;
         }
-    }
-    else
+    } else
         Q_ASSERT(0 && "Timer lost in PhrasePickerWidget::timerEvent");
 }
 
@@ -534,20 +487,19 @@ void PhrasePickerWidget::renderPhrasesToImage(ArrowDirection direction, int arro
 
     if (m_textWidth > m_minBGWidth)
         halfFillerWidth = ((maxImageWidth <  m_textWidth ? maxImageWidth : m_textWidth) - m_minBGWidth) / 2;
-    else if (m_textWidth < m_minBGWidth)
-    {
+    else if (m_textWidth < m_minBGWidth) {
         // text width is less than the minimum background width -> center text to background
         m_phraseGroup->setX((m_minBGWidth - m_textWidth) / 2);
     }
 
     m_BGWidth = m_minBGWidth + 2 * halfFillerWidth;
     QPixmap drawnImage(m_BGWidth, kImageHeight);
-    drawnImage.fill(QColor(0,0,0,0));
+    drawnImage.fill(QColor(0, 0, 0, 0));
 
     const int yPos = (direction ==  arrowDown ? kArrowDownPadding : kArrowUpPadding);
 
     QPainter painter(&drawnImage);
-    painter.drawPixmap(0,yPos, m_leftBG);
+    painter.drawPixmap(0, yPos, m_leftBG);
 
     int xPos = m_leftBG.width();
 
@@ -557,11 +509,9 @@ void PhrasePickerWidget::renderPhrasesToImage(ArrowDirection direction, int arro
     else if (halfFillerWidth - arrowOffsetFromCenter < 0)
         arrowOffsetFromCenter = halfFillerWidth;
 
-    if (halfFillerWidth)
-    {
+    if (halfFillerWidth) {
         const int leftFillerWidth = halfFillerWidth + arrowOffsetFromCenter;
-        if (leftFillerWidth)
-        {
+        if (leftFillerWidth) {
             QRect targetArea(xPos, yPos, leftFillerWidth, kImageHeight);
             painter.drawPixmap(targetArea, m_fillerBG, m_fillerBG.rect());
             xPos += leftFillerWidth;
@@ -569,11 +519,10 @@ void PhrasePickerWidget::renderPhrasesToImage(ArrowDirection direction, int arro
     }
 
     // draw the arrow
-    painter.drawPixmap(xPos,0, middleBG);
+    painter.drawPixmap(xPos, 0, middleBG);
     xPos += middleBG.width();
 
-    if (halfFillerWidth)
-    {
+    if (halfFillerWidth) {
         const int rightFillerWidth = halfFillerWidth - arrowOffsetFromCenter;
         QRect targetArea(xPos, yPos, rightFillerWidth, kImageHeight);
         painter.drawPixmap(targetArea, m_fillerBG, m_fillerBG.rect());
@@ -589,8 +538,7 @@ void PhrasePickerWidget::renderPhrasesToImage(ArrowDirection direction, int arro
     m_lastArrowOffset = arrowOffsetFromCenter;
 
     // place fade images if we're scrollable
-    if (m_scrollable)
-    {
+    if (m_scrollable) {
         m_rightScrollFadeItem->setPos(boundingRect().width() - m_rightScrollFadeItem->boundingRect().width(), yPos);
         m_leftScrollFadeItem->setPos(0, yPos);
     }

@@ -16,32 +16,31 @@
 *
 LICENSE@@@ */
 
-#ifndef QWINDOWSURFACE_BS_H
-#define QWINDOWSURFACE_BS_H
-
-#include <QtGui/private/qwindowsurface_p.h>
-
-#include <QtGui/QPlatformWindow>
+#ifndef qbswindowsurface_h
+#define qbswindowsurface_h
 
 #include "qbsinterface.h"
 
+#include <QtGui/QPlatformWindow>
+#include <QtGui/private/qwindowsurface_p.h>
+
+
 QT_BEGIN_NAMESPACE
 
-class QBsWindowSurface : public QWindowSurface, public QBsDriver
-{
+class QBsWindowSurface : public QWindowSurface, public QBsDriver {
 public:
-    static QBsDriver* registerClient(QWidget *window, QBsClient* client);
+    static QBsDriver* registerClient(QWidget *window, QBsClient*);
     QBsWindowSurface(QWidget *window);
     ~QBsWindowSurface();
 
-    QBsDriver* registerClient(QBsClient* client);
-    void updateBuffer (const QSize size, const QRegion &region, unsigned char* target, const unsigned char* source, QRegion &sourceRegion);
+    QBsDriver* registerClient(QBsClient*);
+    void updateBuffer(const QSize, const QRegion&, unsigned char* target, const unsigned char* source, QRegion &sourceRegion);
 
     QPaintDevice *paintDevice();
     virtual void beginPaint(const QRegion &);
     virtual void endPaint(const QRegion &);
-    void flush(QWidget *widget, const QRegion &region, const QPoint &offset);
-    void resize(const QSize &size);
+    void flush(QWidget*, const QRegion&, const QPoint &offset);
+    void resize(const QSize&);
 
     // QBsDriver Interface
     virtual void setBuffers(unsigned char* buffer0, int length0, unsigned char* buffer1, int length1);
