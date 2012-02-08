@@ -24,12 +24,7 @@ LICENSE@@@ */
 #include <QObject>
 #include <QTime>
 
-/* <apm> tasks:
-   - replace all constants with actual values from old code
-   - style font correctly
-*/
-
-const int kPickerMaxWidth = 200; // <apm> replace this constant with one from legacy code
+const int kPickerMaxWidth = 200; // FIXME: replace this constant with one from legacy code
 
 class PhrasePickerWidget;
 

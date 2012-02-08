@@ -91,7 +91,7 @@ void PickerItem::mouseMove(QGraphicsSceneMouseEvent *event)
     }
 }
 
-// <apm> work-around for QTBUG-15477 here: https://bugreports.qt.nokia.com/browse/QTBUG-15477
+// FIXME: work-around for QTBUG-15477 here: https://bugreports.qt.nokia.com/browse/QTBUG-15477
 // please test mouse events without this function periodically, and remove this when possible
 bool PickerItem::scene(QEvent *event)
 {
@@ -119,7 +119,7 @@ PickerPhrase::PickerPhrase(const QString& text, PhrasePickerWidget* pickerParent
     connect(&m_item, SIGNAL(dragUpdate(qreal)), m_pickerParent, SLOT(onPhraseDragUpdate(qreal)));
     connect(&m_item, SIGNAL(dragFinished()), m_pickerParent, SLOT(onPhraseDragFinished()));
 
-    // <apm> fix me with text color from existing code
+    // FIXME: Use the text color from existing code
     setDefaultTextColor(Qt::white);
 
     // handle phrase clicking
