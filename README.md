@@ -7,6 +7,7 @@ This is a supplemental component to webkit. The main goal of this component is t
 possible webOS specific webkit changes to be done outside webkit source directory.
 
 Right now, This component has source code for:
+
 * widgets: Contain custom Phrase picker widget for Spell Checker and Cut-Copy-Paste
 * browserserver rendering using qbsplugin and qtwebkit plugins
 * misc: contain extended QWebPage and WebSettings APIs
