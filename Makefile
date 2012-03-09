@@ -3,8 +3,8 @@ TARGET_ARCH ?= x86
 QMAKE       ?= qmake
 
 # If not set by OE then use desktop staging locations
-INCLUDE_DIR ?= $(LUNA_STAGING)/include
-LIB_DIR     ?= $(LUNA_STAGING)/lib
+INCLUDE_DIR ?= $(STAGING_DIR)/include
+LIB_DIR     ?= $(STAGING_DIR)/lib
 
 STAGING_INCDIR ?= $(INCLUDE_DIR)
 STAGING_LIBDIR ?= $(LIB_DIR)
