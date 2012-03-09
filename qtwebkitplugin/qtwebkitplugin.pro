@@ -15,7 +15,7 @@ HEADERS += \
 
 
 STAGING_INCDIR = $$(STAGING_INCDIR)
-isEmpty(STAGING_INCDIR):STAGING_INCDIR = $$(LUNA_STAGING)/include
+isEmpty(STAGING_INCDIR):STAGING_INCDIR = $$(STAGING_DIR)/include
 
 #install headers
 headers.path = $${STAGING_INCDIR}/WebKitSupplemental
