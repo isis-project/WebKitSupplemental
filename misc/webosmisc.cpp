@@ -23,7 +23,7 @@ LICENSE@@@ */
 
 namespace webOS {
 
-bool setSelectionColors(const QGraphicsWebView* view)
+bool setSelectionColors(QGraphicsWebView* view)
 {
     if (!view)
         return false;
