@@ -6,6 +6,7 @@ include(externalplugin.pri)
 
 INCLUDEPATH += $$QT_SOURCE_TREE/src/3rdparty/harfbuzz/src
 DEFINES += QT_NO_FONTCONFIG
+DEFINES += Q_WS_QPA
 
 CONFIG += link_pkgconfig
 PKGCONFIG += glib-2.0 freetype2
