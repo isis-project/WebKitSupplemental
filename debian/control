@@ -1,0 +1,16 @@
+Source: webkitsupplemental
+Section: unknown
+Priority: webOS
+Maintainer: Anupam <anupam.kaul@palm.com>
+Build-Depends: debhelper (>= 8.0.0) 
+Standards-Version: 3.9.2
+Homepage: https://github.com/isis-project/WebKitSupplemental
+#Vcs-Git: git://git.debian.org/collab-maint/webkitsupplemental.git
+#Vcs-Browser: http://git.debian.org/?p=collab-maint/webkitsupplemental.git;a=summary
+
+Package: webkitsupplemental
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: A supplemental component to webkit to create webOS specific webkit changes outside webkit source.
+ This is a supplemental component to webkit to seperate all possible webOS specific webkit changes to be done
+ outside the webkit source directory.
