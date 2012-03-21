@@ -6,3 +6,4 @@
 moc_*
 build.sh
 patches
+Makefile.WebKitSupplemental
