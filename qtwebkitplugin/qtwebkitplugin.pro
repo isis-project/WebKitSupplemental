@@ -17,6 +17,9 @@ HEADERS += \
 STAGING_INCDIR = $$(STAGING_INCDIR)
 isEmpty(STAGING_INCDIR):STAGING_INCDIR = $$(STAGING_DIR)/include
 
+STAGING_LIBDIR = $$(STAGING_LIBDIR)
+isEmpty(STAGING_LIBDIR):STAGING_LIBDIR = $$(STAGING_DIR)/lib
+
 #install headers
 headers.path = $${STAGING_INCDIR}/WebKitSupplemental
 headers.files += \
@@ -24,3 +27,7 @@ headers.files += \
     qwebkitplatformplugin.h
 
 INSTALLS += headers
+
+#install lib
+target.path = $$STAGING_LIBDIR
+INSTALLS += target
