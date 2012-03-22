@@ -49,4 +49,7 @@ headers.files += \
 
 INSTALLS += headers
 
+#install lib
+target.path = $$STAGING_LIBDIR
+INSTALLS += target
 
