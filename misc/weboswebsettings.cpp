@@ -18,11 +18,15 @@ LICENSE@@@ */
 
 #include "weboswebsettings.h"
 #include <QtCore/QCoreApplication>
+#include <QtCore/QDir>
 #include <QtCore/QFile>
 #include <QtCore/QSettings>
 #include <QtCore/QStringList>
 #include <QtWebKit/qwebsettings.h>
 
+#ifdef ISIS_DESKTOP
+const QString systemScopeRootDir =  QDir::homePath()+QString("/.isis");
+#endif //ISIS_DESKTOP
 
 namespace {
 
@@ -95,7 +99,12 @@ bool WebSettings::initSettings(const QVariantMap &settingsMap)
     if (QFile::exists(userScopeFile))
         QFile::remove(userScopeFile);
 
+#ifdef ISIS_DESKTOP
+    QString systemScopeFile = QString(systemScopeRootDir+QString("/etc/palm/%1.conf")).arg(applicationName);
+#else
     QString systemScopeFile = QString("/etc/palm/%1.conf").arg(applicationName);
+#endif //ISIS_DESKTOP
+
     qDebug("webOS::WebSettings::initSettings: loading settings from: %s", qPrintable(systemScopeFile));
 
     QSettings systemSettings(systemScopeFile, QSettings::NativeFormat);
