@@ -50,6 +50,6 @@ headers.files += \
 INSTALLS += headers
 
 #install lib
-target.path = $$STAGING_LIBDIR
+target.path = $$(STAGING_DIR)/plugins/platforms
 INSTALLS += target
 
