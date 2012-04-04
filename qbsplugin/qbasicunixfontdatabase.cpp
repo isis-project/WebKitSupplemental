@@ -244,7 +244,7 @@ QStringList QBasicUnixFontDatabase::fallbacksForFamily(const QString family, con
     Q_UNUSED(styleHint);
     Q_UNUSED(script);
 
-    return (QStringList() << "Hei S" << "HeiT" << "Heisei Kaku Gothic" << "Dotum");
+    return QStringList();
 }
 
 QStringList QBasicUnixFontDatabase::addApplicationFont(const QByteArray &fontData, const QString &fileName)
