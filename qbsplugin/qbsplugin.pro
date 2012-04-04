@@ -14,19 +14,18 @@ PKGCONFIG += glib-2.0 freetype2
 SOURCES =   main.cpp \
             qbsintegration.cpp \
             qbswindowsurface.cpp \
-            qminimalwindowsurface.cpp 
+            qminimalwindowsurface.cpp \
+            qbasicunixfontdatabase.cpp
 
 HEADERS =   qbsintegration.h \
             qminimalwindowsurface.h \
-            qbswindowsurface.h 
+            qbswindowsurface.h \
+            qbasicunixfontdatabase.h
 
 INCLUDEPATH += $$QT_BUILD_TREE/include
 INCLUDEPATH += $$QT_BUILD_TREE/include/QtGui
 INCLUDEPATH += $$QT_BUILD_TREE/include/QtCore
-INCLUDEPATH += $$QT_SOURCE_TREE/src/plugins/platforms/fontdatabases/genericunix 
-INCLUDEPATH += $$QT_SOURCE_TREE/src/plugins/platforms/fontdatabases/basicunix 
 SOURCES += $$QT_SOURCE_TREE/src/gui/text/qfontengine_ft.cpp
-SOURCES += $$QT_SOURCE_TREE/src/plugins/platforms/fontdatabases/basicunix/qbasicunixfontdatabase.cpp
 
 QMAKE_CXXFLAGS += -fno-rtti -fno-exceptions
 

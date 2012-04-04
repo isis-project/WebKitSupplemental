@@ -40,59 +40,29 @@
 **
 ****************************************************************************/
 
-#include "qbsintegration.h"
-#include "qbswindowsurface.h"
-#include "qbasicunixfontdatabase.h"
-#include "qminimalwindowsurface.h"
+#ifndef QBASICUNIXFONTDATABASE_H
+#define QBASICUNIXFONTDATABASE_H
 
-#include <QDebug>
-#include <QGraphicsView>
-#include <QtGui/QPlatformWindow>
-#include <QtGui/private/qpixmap_raster_p.h>
+#include <QPlatformFontDatabase>
+#include <QtCore/QByteArray>
+#include <QtCore/QString>
 
-QBsIntegration::QBsIntegration()
-    : mFontDb(new QBasicUnixFontDatabase())
+struct FontFile
 {
-    QBsScreen* mPrimaryScreen = new QBsScreen();
+    QString fileName;
+    int indexValue;
+};
 
-    mPrimaryScreen->mGeometry = QRect(0, 0, 240, 320);
-    mPrimaryScreen->mDepth = 32;
-    mPrimaryScreen->mFormat = QImage::Format_ARGB32_Premultiplied;
-
-    mScreens.append(mPrimaryScreen);
-}
-
-bool QBsIntegration::hasCapability(QPlatformIntegration::Capability cap) const
+class QBasicUnixFontDatabase : public QPlatformFontDatabase
 {
-    switch (cap) {
-    case ThreadedPixmaps: return true;
-    default: return QPlatformIntegration::hasCapability(cap);
-    }
-}
+public:
+    void populateFontDatabase();
+    QFontEngine *fontEngine(const QFontDef &fontDef, QUnicodeTables::Script script, void *handle);
+    QStringList fallbacksForFamily(const QString family, const QFont::Style &style, const QFont::StyleHint &styleHint, const QUnicodeTables::Script &script) const;
+    QStringList addApplicationFont(const QByteArray &fontData, const QString &fileName);
+    void releaseHandle(void *handle);
 
-QPixmapData* QBsIntegration::createPixmapData(QPixmapData::PixelType type) const
-{
-    return new QRasterPixmapData(type);
-}
+    static QStringList addTTFile(const QByteArray &fontData, const QByteArray &file);
+};
 
-QPlatformWindow* QBsIntegration::createPlatformWindow(QWidget *widget, WId winId) const
-{
-    Q_UNUSED(winId);
-    return new QPlatformWindow(widget);
-}
-
-QWindowSurface* QBsIntegration::createWindowSurface(QWidget *widget, WId winId) const
-{
-    Q_UNUSED(winId);
-    QGraphicsView* view = qobject_cast<QGraphicsView *>(widget);
-
-    if (view) 
-        return new QBsWindowSurface(widget);
-    return new QMinimalWindowSurface(widget);
-}
-
-QPlatformFontDatabase* QBsIntegration::fontDatabase() const
-{
-    return mFontDb;
-}
-
+#endif // QBASICUNIXFONTDATABASE_H
