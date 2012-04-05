@@ -131,6 +131,60 @@ static int requiredUnicodeBits[QFontDatabase::WritingSystemsCount][2] = {
     { 14, 127 },
 };
 
+static const char *s_writingSystemStrings[QFontDatabase::WritingSystemsCount] = {
+    "Any",
+    "Latin",
+    "Greek",
+    "Cyrillic",
+    "Armenian",
+    "Hebrew",
+    "Arabic",
+    "Syriac",
+    "Thaana",
+    "Devanagari",
+    "Bengali",
+    "Gurmukhi",
+    "Gujarati",
+    "Oriya",
+    "Tamil",
+    "Telugu",
+    "Kannada",
+    "Malayalam",
+    "Sinhala",
+    "Thai",
+    "Lao",
+    "Tibetan",
+    "Myanmar",
+    "Georgian",
+    "Khmer",
+    "SimplifiedChinese",
+    "TraditionalChinese",
+    "Japanese",
+    "Korean",
+    "Vietnamese",
+    "Symbol",
+    "Ogham",
+    "Runic",
+    "Nko"
+};
+
+static QString sFallbackTraditionalChineseFontFamily;
+static QString sFallbackSimplfiedChineseFontFamily;
+static QString sFallbackJapaneseFontFamily;
+static QString sFallbackKoreanFontFamily;
+
+static QString qSupportedWritingSystemsToQString(const QSupportedWritingSystems &writingSystems)
+{
+    QStringList writingSystemsStringList;
+
+    int i;
+    for (i = 0; i < QFontDatabase::WritingSystemsCount; i++) {
+        if (writingSystems.supported(QFontDatabase::WritingSystem(i)))
+            writingSystemsStringList << s_writingSystemStrings[i];
+    }
+    return writingSystemsStringList.join(",");
+}
+
 static QSupportedWritingSystems determineWritingSystemsFromTrueTypeBits(quint32 unicodeRange[4], quint32 codePageRange[2])
 {
     QSupportedWritingSystems writingSystems;
@@ -202,13 +256,14 @@ void QBasicUnixFontDatabase::populateFontDatabase()
     dir.refresh();
     for (int i = 0; i < int(dir.count()); ++i) {
         const QByteArray file = QFile::encodeName(dir.absoluteFilePath(dir[i]));
-//        qDebug() << "looking at" << file;
+        //qDebug() << "looking at" << file;
         addTTFile(QByteArray(), file);
     }
 }
 
 QFontEngine *QBasicUnixFontDatabase::fontEngine(const QFontDef &fontDef, QUnicodeTables::Script script, void *usrPtr)
 {
+    //qDebug("fontEngine(fontDef.family = %s, script = %d, usrPtr = %p)", qPrintable(fontDef.family), script, usrPtr);
     QFontEngineFT *engine;
     FontFile *fontfile = static_cast<FontFile *> (usrPtr);
     QFontEngine::FaceId fid;
@@ -239,12 +294,24 @@ QFontEngine *QBasicUnixFontDatabase::fontEngine(const QFontDef &fontDef, QUnicod
 
 QStringList QBasicUnixFontDatabase::fallbacksForFamily(const QString family, const QFont::Style &style, const QFont::StyleHint &styleHint, const QUnicodeTables::Script &script) const
 {
+    //qDebug("fallbacksForFamily(family = %s, style = %d, styleHint = %d, script = %d)", qPrintable(family), style, styleHint, script);
     Q_UNUSED(family);
     Q_UNUSED(style);
     Q_UNUSED(styleHint);
     Q_UNUSED(script);
 
-    return QStringList();
+    QStringList fallbacks;
+
+    if (!sFallbackSimplfiedChineseFontFamily.isEmpty())
+        fallbacks << sFallbackSimplfiedChineseFontFamily;
+    if (!sFallbackTraditionalChineseFontFamily.isEmpty())
+        fallbacks << sFallbackTraditionalChineseFontFamily;
+    if (!sFallbackJapaneseFontFamily.isEmpty())
+        fallbacks << sFallbackJapaneseFontFamily;
+    if (!sFallbackKoreanFontFamily.isEmpty())
+        fallbacks << sFallbackKoreanFontFamily;
+
+    return fallbacks;
 }
 
 QStringList QBasicUnixFontDatabase::addApplicationFont(const QByteArray &fontData, const QString &fileName)
@@ -318,10 +385,20 @@ QStringList QBasicUnixFontDatabase::addTTFile(const QByteArray &fontData, const 
         fontFile->indexValue = index;
 
         QFont::Stretch stretch = QFont::Unstretched;
+        // qDebug("registerFont(\"%s\",\"\",%d,%d,%d,true,true,0,\"%s\",fontFile)", qPrintable(family), weight, style, stretch, qPrintable(qSupportedWritingSystemsToQString(writingSystems)));
 
         registerFont(family,"",weight,style,stretch,true,true,0,writingSystems,fontFile);
 
         families.append(family);
+
+        if (sFallbackSimplfiedChineseFontFamily.isEmpty() && writingSystems.supported(QFontDatabase::SimplifiedChinese))
+            sFallbackSimplfiedChineseFontFamily = family;
+        if (sFallbackTraditionalChineseFontFamily.isEmpty() && writingSystems.supported(QFontDatabase::TraditionalChinese))
+            sFallbackTraditionalChineseFontFamily = family;
+        if (sFallbackJapaneseFontFamily.isEmpty() && writingSystems.supported(QFontDatabase::Japanese))
+            sFallbackJapaneseFontFamily = family;
+        if (sFallbackKoreanFontFamily.isEmpty() && writingSystems.supported(QFontDatabase::Korean))
+            sFallbackKoreanFontFamily = family;
 
         FT_Done_Face(face);
         ++index;
