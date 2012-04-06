@@ -27,11 +27,10 @@ namespace webOS {
 namespace WebSettings {
 
 /**
- * Initialize QSettings to contain values from passed in settingsMap
- * Read in override settings from /etc/palm/ApplicationName.conf
- * QSettings userScope will be set to /var/tmp
+ * Initialize QSettings to contain values from settingsMap
+ * Read in override settings from settingsFile
  */
-bool initSettings(const QVariantMap &settingsMap);
+bool initSettings(const QVariantMap &settingsMap, const QString &settingsFile = QString::null);
 
 /**
  * Initialize QWebSettings with defaults from QSettings if they have been set
