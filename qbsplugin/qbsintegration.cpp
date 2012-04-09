@@ -55,7 +55,7 @@ QBsIntegration::QBsIntegration()
 {
     QBsScreen* mPrimaryScreen = new QBsScreen();
 
-    mPrimaryScreen->mGeometry = QRect(0, 0, 240, 320);
+    mPrimaryScreen->mGeometry = QRect(0, 0, 1024, 768);
     mPrimaryScreen->mDepth = 32;
     mPrimaryScreen->mFormat = QImage::Format_ARGB32_Premultiplied;
 
