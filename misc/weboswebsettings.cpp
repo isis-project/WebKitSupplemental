@@ -18,15 +18,10 @@ LICENSE@@@ */
 
 #include "weboswebsettings.h"
 #include <QtCore/QCoreApplication>
-#include <QtCore/QDir>
 #include <QtCore/QFile>
 #include <QtCore/QSettings>
 #include <QtCore/QStringList>
 #include <QtWebKit/qwebsettings.h>
-
-#ifdef ISIS_DESKTOP
-const QString systemScopeRootDir =  QDir::homePath()+QString("/.isis");
-#endif //ISIS_DESKTOP
 
 namespace {
 
@@ -75,14 +70,12 @@ static const QString WEB_SETTINGS_KEY_PLUGIN_SUPPLEMENTAL_USER_PATH         = QL
 
 namespace webOS {
 
-bool WebSettings::initSettings(const QVariantMap &settingsMap)
+bool WebSettings::initSettings(const QVariantMap &settingsMap, const QString &settingsFile)
 {
     if (localSettingsLoaded)
         return false;
 
-    QSettings::setPath(QSettings::NativeFormat, QSettings::UserScope, QLatin1String("/var/tmp"));
-
-    QString applicationName = QCoreApplication::applicationName();
+   QString applicationName = QCoreApplication::applicationName();
     if (applicationName.isEmpty()) {
         applicationName = QLatin1String("WebSettings");
         QCoreApplication::setApplicationName(applicationName);
@@ -90,35 +83,31 @@ bool WebSettings::initSettings(const QVariantMap &settingsMap)
 
     QString organizationName = QCoreApplication::organizationName();
     if (organizationName.isEmpty()) {
-        organizationName = QLatin1String("palm");
+        organizationName = QLatin1String("webos");
         QCoreApplication::setOrganizationName(organizationName);
     }
 
-    QString userScopeFile = QString("/var/tmp/%1/%2.conf").arg(organizationName).arg(applicationName);
-
-    if (QFile::exists(userScopeFile))
-        QFile::remove(userScopeFile);
-
-#ifdef ISIS_DESKTOP
-    QString systemScopeFile = QString(systemScopeRootDir+QString("/etc/palm/%1.conf")).arg(applicationName);
-#else
-    QString systemScopeFile = QString("/etc/palm/%1.conf").arg(applicationName);
-#endif //ISIS_DESKTOP
-
-    qDebug("webOS::WebSettings::initSettings: loading settings from: %s", qPrintable(systemScopeFile));
-
-    QSettings systemSettings(systemScopeFile, QSettings::NativeFormat);
     QSettings settings;
 
+    if (QFile::exists(settings.fileName()))
+        QFile::remove(settings.fileName());
+
+    qDebug("webOS::WebSettings::initSettings");
     // add all values from settingsMap
     QVariantMap::const_iterator it;
     for (it = settingsMap.constBegin(); it != settingsMap.constEnd(); ++it)
         settings.setValue(it.key(), it.value());
 
-    // override settingsMap values with system conf values
-    QStringList keyList = systemSettings.allKeys();
-    foreach (QString key, keyList)
-        settings.setValue(key, systemSettings.value(key));
+    if (!settingsFile.isEmpty()) {
+
+        qDebug("webOS::WebSettings::loading settings from: %s", qPrintable(settingsFile));
+        QSettings systemSettings(settingsFile, QSettings::NativeFormat);
+
+        // override settingsMap values with system conf values
+        QStringList keyList = systemSettings.allKeys();
+        foreach (QString key, keyList)
+            settings.setValue(key, systemSettings.value(key));
+    }
 
     localSettingsLoaded = true;
     return true;
