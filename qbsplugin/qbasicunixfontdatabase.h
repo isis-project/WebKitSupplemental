@@ -46,15 +46,18 @@
 #include <QPlatformFontDatabase>
 #include <QtCore/QByteArray>
 #include <QtCore/QString>
+#include <QObject>
 
 struct FontFile
 {
     QString fileName;
     int indexValue;
+    QString familyName;
 };
 
-class QBasicUnixFontDatabase : public QPlatformFontDatabase
+class QBasicUnixFontDatabase : public QObject, public QPlatformFontDatabase
 {
+Q_OBJECT
 public:
     void populateFontDatabase();
     QFontEngine *fontEngine(const QFontDef &fontDef, QUnicodeTables::Script script, void *handle);
@@ -63,6 +66,18 @@ public:
     void releaseHandle(void *handle);
 
     static QStringList addTTFile(const QByteArray &fontData, const QByteArray &file);
+
+public Q_SLOTS:
+    void doFontDatabaseChanged();
+
+private:
+    QString appFontDir();
+    void populateFontDatabaseFromAppFonts();
+    void removeAppFontFiles();
+    QStringList addFontFile(const QByteArray &fontData, const QString &fileName);
+    bool createFileWithFontData(QString& fileName, const QByteArray &fontData);
+    QApplication* m_qApp;
+    QStringList m_fontFileList;
 };
 
 #endif // QBASICUNIXFONTDATABASE_H

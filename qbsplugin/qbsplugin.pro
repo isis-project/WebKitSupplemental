@@ -11,13 +11,13 @@ DEFINES += Q_WS_QPA
 CONFIG += link_pkgconfig
 PKGCONFIG += glib-2.0 freetype2
 
-SOURCES =   main.cpp \
+SOURCES +=  main.cpp \
             qbsintegration.cpp \
             qbswindowsurface.cpp \
             qminimalwindowsurface.cpp \
             qbasicunixfontdatabase.cpp
 
-HEADERS =   qbsintegration.h \
+HEADERS +=  qbsintegration.h \
             qminimalwindowsurface.h \
             qbswindowsurface.h \
             qbasicunixfontdatabase.h

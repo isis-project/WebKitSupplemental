@@ -48,6 +48,8 @@
 #include <QtCore/QLibraryInfo>
 #include <QtCore/QDir>
 
+#include <QCryptographicHash>
+
 #undef QT_NO_FREETYPE
 #include <QtGui/private/qfontengine_ft_p.h>
 #include <QtGui/private/qfontengine_p.h>
@@ -168,6 +170,7 @@ static const char *s_writingSystemStrings[QFontDatabase::WritingSystemsCount] = 
     "Nko"
 };
 
+static bool sInitialized = false;
 static QString sFallbackTraditionalChineseFontFamily;
 static QString sFallbackSimplfiedChineseFontFamily;
 static QString sFallbackJapaneseFontFamily;
@@ -241,6 +244,10 @@ static inline bool scriptRequiresOpenType(int script)
 
 void QBasicUnixFontDatabase::populateFontDatabase()
 {
+    if (!sInitialized) {
+        removeAppFontFiles();
+        sInitialized = true;
+    }
     QPlatformFontDatabase::populateFontDatabase();
     QString fontpath = fontDir();
 
@@ -255,15 +262,51 @@ void QBasicUnixFontDatabase::populateFontDatabase()
                        << QLatin1String("*.pfb"));
     dir.refresh();
     for (int i = 0; i < int(dir.count()); ++i) {
-        const QByteArray file = QFile::encodeName(dir.absoluteFilePath(dir[i]));
-        //qDebug() << "looking at" << file;
-        addTTFile(QByteArray(), file);
+        const QString file = dir.absoluteFilePath(dir[i]);
+        qDebug() << "looking at" << file;
+        addFontFile(QByteArray(), file);
+    }
+}
+
+void QBasicUnixFontDatabase::populateFontDatabaseFromAppFonts()
+{
+    QString fontpath = appFontDir();
+
+    if(!QFile::exists(fontpath)) {
+        qDebug("QFontDatabase: Cannot find app font directory %s", qPrintable(fontpath));
+        return;
+    }
+
+    QDir dir(fontpath);
+    dir.setNameFilters(QStringList() << QLatin1String("*.fnt"));
+    dir.refresh();
+    for (int i = 0; i < int(dir.count()); ++i) {
+        const QString file = dir.absoluteFilePath(dir[i]);
+        qDebug() << "looking at" << file;
+        addFontFile(QByteArray(), file);
+    }
+}
+
+void QBasicUnixFontDatabase::removeAppFontFiles()
+{
+    QString fontpath = appFontDir();
+
+    if(!QFile::exists(fontpath)) {
+        qDebug("QFontDatabase: Cannot find app font directory %s", qPrintable(fontpath));
+        return;
+    }
+
+    QDir dir(fontpath);
+    dir.setNameFilters(QStringList() << QLatin1String("*.fnt"));
+    dir.refresh();
+    for (int i = 0; i < int(dir.count()); ++i) {
+        (void) dir.remove(dir[i]);
     }
 }
 
 QFontEngine *QBasicUnixFontDatabase::fontEngine(const QFontDef &fontDef, QUnicodeTables::Script script, void *usrPtr)
 {
-    //qDebug("fontEngine(fontDef.family = %s, script = %d, usrPtr = %p)", qPrintable(fontDef.family), script, usrPtr);
+    qDebug("fontEngine(fontDef.family = %s, script = %d, usrPtr = %p)", qPrintable(fontDef.family), script, usrPtr);
     QFontEngineFT *engine;
     FontFile *fontfile = static_cast<FontFile *> (usrPtr);
     QFontEngine::FaceId fid;
@@ -294,7 +337,7 @@ QFontEngine *QBasicUnixFontDatabase::fontEngine(const QFontDef &fontDef, QUnicod
 
 QStringList QBasicUnixFontDatabase::fallbacksForFamily(const QString family, const QFont::Style &style, const QFont::StyleHint &styleHint, const QUnicodeTables::Script &script) const
 {
-    //qDebug("fallbacksForFamily(family = %s, style = %d, styleHint = %d, script = %d)", qPrintable(family), style, styleHint, script);
+    qDebug("fallbacksForFamily(family = %s, style = %d, styleHint = %d, script = %d)", qPrintable(family), style, styleHint, script);
     Q_UNUSED(family);
     Q_UNUSED(style);
     Q_UNUSED(styleHint);
@@ -316,13 +359,94 @@ QStringList QBasicUnixFontDatabase::fallbacksForFamily(const QString family, con
 
 QStringList QBasicUnixFontDatabase::addApplicationFont(const QByteArray &fontData, const QString &fileName)
 {
-    return addTTFile(fontData,fileName.toLocal8Bit());
+    qDebug("addApplicationFont(fontData.size() = %d, fileName = \"%s\")", fontData.size(), qPrintable(fileName.toLocal8Bit()));
+
+    if (!m_qApp) {
+        m_qApp = (QApplication *) QApplication::instance();
+        QBasicUnixFontDatabase* self = (QBasicUnixFontDatabase *) this;
+        connect(m_qApp, SIGNAL(fontDatabaseChanged()), self, SLOT(doFontDatabaseChanged()));
+    }
+
+    return addFontFile(fontData, fileName);
+}
+
+void QBasicUnixFontDatabase::doFontDatabaseChanged()
+{
+    qDebug("doFontDatabaseChanged");
+    populateFontDatabase();
+    populateFontDatabaseFromAppFonts();
 }
 
 void QBasicUnixFontDatabase::releaseHandle(void *handle)
 {
     FontFile *file = static_cast<FontFile *>(handle);
+    qDebug("releaseHandle(%s)", file ? qPrintable(file->fileName) : "null");
+
+    m_fontFileList.removeAll(file->fileName);
+
+    if (sFallbackSimplfiedChineseFontFamily == file->familyName)
+        sFallbackSimplfiedChineseFontFamily = "";
+    if (sFallbackTraditionalChineseFontFamily == file->familyName)
+        sFallbackTraditionalChineseFontFamily = "";
+    if (sFallbackJapaneseFontFamily == file->familyName)
+        sFallbackJapaneseFontFamily = "";
+    if (sFallbackKoreanFontFamily == file->familyName)
+        sFallbackKoreanFontFamily = "";
+
     delete file;
+}
+
+QString QBasicUnixFontDatabase::appFontDir()
+{
+    return QDir::tempPath() + "/qbs-app-fonts";
+}
+
+bool QBasicUnixFontDatabase::createFileWithFontData(QString& fileName, const QByteArray &fontData)
+{
+    QDir fontDir(appFontDir());
+    if (!fontDir.mkpath(fontDir.path())) {
+        qDebug("Couldn't make directory (%s) to hold application fonts", qPrintable(fontDir.path()));
+        return false;
+    }
+    QByteArray fontDataHash = QCryptographicHash::hash(fontData, QCryptographicHash::Sha1);
+    fileName = appFontDir() + "/" + QString(fontDataHash.toHex()) + ".fnt";
+
+    QFile fontFile(fileName);
+    if (!fontFile.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        qDebug("Couldn't open font file (%s) to store the font data", qPrintable(fileName));
+        return false;
+    }
+
+    qint64 bytesWritten = fontFile.write(fontData.constData(), fontData.size());
+    fontFile.close();
+    if (bytesWritten < 0) {
+        qDebug("Error writing font data to %s", qPrintable(fileName));
+        return false;
+    } else if (bytesWritten < fontData.size()) {
+        qDebug("Wrote %d bytes to %s.  Expected %d.", bytesWritten, qPrintable(fileName), fontData.size());
+        return false;
+    }
+
+    return true;
+}
+
+QStringList QBasicUnixFontDatabase::addFontFile(const QByteArray &fontData, const QString &fileName)
+{
+    QStringList families;
+    QString fontFileName = fileName;
+    QByteArray data = fontData;
+
+    if (!fontData.isEmpty() && fileName.startsWith(":qmemoryfonts/")) {
+        if (!createFileWithFontData(fontFileName, fontData))
+            return families;
+        data = QByteArray();
+    }
+
+    if (!m_fontFileList.contains(fontFileName)) {
+        families = addTTFile(data, fontFileName.toLocal8Bit());
+        m_fontFileList << fontFileName;
+    }
+    return families;
 }
 
 QStringList QBasicUnixFontDatabase::addTTFile(const QByteArray &fontData, const QByteArray &file)
@@ -383,9 +507,10 @@ QStringList QBasicUnixFontDatabase::addTTFile(const QByteArray &fontData, const 
         FontFile *fontFile = new FontFile;
         fontFile->fileName = file;
         fontFile->indexValue = index;
+        fontFile->familyName = family;
 
         QFont::Stretch stretch = QFont::Unstretched;
-        // qDebug("registerFont(\"%s\",\"\",%d,%d,%d,true,true,0,\"%s\",fontFile)", qPrintable(family), weight, style, stretch, qPrintable(qSupportedWritingSystemsToQString(writingSystems)));
+        qDebug("registerFont(\"%s\",\"\",%d,%d,%d,true,true,0,\"%s\",fontFile = {fileName = \"%s\", indexValue = %d})", qPrintable(family), weight, style, stretch, qPrintable(qSupportedWritingSystemsToQString(writingSystems)), qPrintable(fontFile->fileName), fontFile->indexValue);
 
         registerFont(family,"",weight,style,stretch,true,true,0,writingSystems,fontFile);
 
