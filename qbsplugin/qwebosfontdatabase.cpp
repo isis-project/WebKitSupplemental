@@ -57,6 +57,12 @@
 #include <ft2build.h>
 #include FT_TRUETYPE_TABLES_H
 
+static bool sInitialized = false;
+static QString sFallbackTraditionalChineseFontFamily;
+static QString sFallbackSimplfiedChineseFontFamily;
+static QString sFallbackJapaneseFontFamily;
+static QString sFallbackKoreanFontFamily;
+
 #define SimplifiedChineseCsbBit 18
 #define TraditionalChineseCsbBit 20
 #define JapaneseCsbBit 17
@@ -170,12 +176,6 @@ static const char *s_writingSystemStrings[QFontDatabase::WritingSystemsCount] = 
     "Nko"
 };
 
-static bool sInitialized = false;
-static QString sFallbackTraditionalChineseFontFamily;
-static QString sFallbackSimplfiedChineseFontFamily;
-static QString sFallbackJapaneseFontFamily;
-static QString sFallbackKoreanFontFamily;
-
 static QString qSupportedWritingSystemsToQString(const QSupportedWritingSystems &writingSystems)
 {
     QStringList writingSystemsStringList;
@@ -206,29 +206,24 @@ static QSupportedWritingSystems determineWritingSystemsFromTrueTypeBits(quint32 
             if (bit == 127 || unicodeRange[index] & flag) {
                 writingSystems.setSupported(QFontDatabase::WritingSystem(i));
                 hasScript = true;
-                // qDebug("font %s: index=%d, flag=%8x supports script %d", familyName.latin1(), index, flag, i);
             }
         }
     }
     if(codePageRange[0] & (1 << SimplifiedChineseCsbBit)) {
         writingSystems.setSupported(QFontDatabase::SimplifiedChinese);
         hasScript = true;
-        //qDebug("font %s supports Simplified Chinese", familyName.latin1());
     }
     if(codePageRange[0] & (1 << TraditionalChineseCsbBit)) {
         writingSystems.setSupported(QFontDatabase::TraditionalChinese);
         hasScript = true;
-        //qDebug("font %s supports Traditional Chinese", familyName.latin1());
     }
     if(codePageRange[0] & (1 << JapaneseCsbBit)) {
         writingSystems.setSupported(QFontDatabase::Japanese);
         hasScript = true;
-        //qDebug("font %s supports Japanese", familyName.latin1());
     }
     if(codePageRange[0] & (1 << KoreanCsbBit)) {
         writingSystems.setSupported(QFontDatabase::Korean);
         hasScript = true;
-        //qDebug("font %s supports Korean", familyName.latin1());
     }
     if (!hasScript)
         writingSystems.setSupported(QFontDatabase::Symbol);
@@ -240,6 +235,157 @@ static inline bool scriptRequiresOpenType(int script)
 {
     return ((script >= QUnicodeTables::Syriac && script <= QUnicodeTables::Sinhala)
             || script == QUnicodeTables::Khmer || script == QUnicodeTables::Nko);
+}
+
+static const char *s_hintingPreferenceStrings[QFont::PreferFullHinting+1] = {
+    "PreferDefaultHinting",
+    "PreferNoHinting",
+    "PreferVerticalHinting",
+    "PreferFullHinting"
+};
+
+static QString qHintingPreferenceToQString(const QFont::HintingPreference pref) {
+    return QString(s_hintingPreferenceStrings[pref]);
+}
+
+static const char *s_styleStrings[QFont::StyleOblique+1] = {
+    "StyleNormal",
+    "StyleItalic",
+    "StyleOblique"
+};
+
+static QString qStyleToQString(const QFont::Style style) {
+    return QString(s_styleStrings[style]);
+}
+
+static QString qWeightToQString(const QFont::Weight weight) {
+    int weightInt = (int) weight;
+    switch (weightInt) {
+    case QFont::Light:
+        return "Light";
+    case QFont::Normal:
+        return "Normal";
+    case QFont::DemiBold:
+        return "DemiBold";
+    case QFont::Bold:
+        return "Bold";
+    case QFont::Black:
+        return "Black";
+    default:
+        return QString(weightInt);
+    }
+}
+
+static QString qStretchToQString(const QFont::Stretch stretch) {
+    int stretchInt = (int) stretch;
+    switch (stretchInt) {
+    case QFont::UltraCondensed:
+        return "UltraCondensed";
+    case QFont::ExtraCondensed:
+        return "ExtraCondensed";
+    case QFont::Condensed:
+        return "Condensed";
+    case QFont::SemiCondensed:
+        return "SemiCondensed";
+    case QFont::Unstretched:
+        return "Unstretched";
+    case QFont::SemiExpanded:
+        return "SemiExpanded";
+    case QFont::Expanded:
+        return "Expanded";
+    case QFont::ExtraExpanded:
+        return "ExtraExpanded";
+    case QFont::UltraExpanded:
+        return "UltraExpanded";
+    default:
+        return QString(stretchInt);
+    }
+}
+
+static const char *s_styleHintStrings[QFont::Fantasy+1] = {
+    "Helvetica",
+    "Times",
+    "Courier",
+    "OldEnglish",
+    "System",
+    "AnyStyle",
+    "Cursive",
+    "Monospace",
+    "Fantasy"
+};
+
+static QString qStyleHintToQString(const QFont::StyleHint styleHint) {
+    return QString(s_styleHintStrings[styleHint]);
+}
+
+static QString qStyleStrategyToQString(const QFont::StyleStrategy styleStrategy) {
+    QStringList strategies;
+
+    if (styleStrategy & QFont::PreferDefault)
+        strategies << "PreferDefault";
+    if (styleStrategy & QFont::PreferBitmap)
+        strategies << "PreferBitmap";
+    if (styleStrategy & QFont::PreferDevice)
+        strategies << "PreferDevice";
+    if (styleStrategy & QFont::PreferOutline)
+        strategies << "PreferOutline";
+    if (styleStrategy & QFont::ForceOutline)
+        strategies << "ForceOutline";
+    if (styleStrategy & QFont::PreferMatch)
+        strategies << "PreferMatch";
+    if (styleStrategy & QFont::PreferQuality)
+        strategies << "PreferQuality";
+    if (styleStrategy & QFont::PreferAntialias)
+        strategies << "PreferAntialias";
+    if (styleStrategy & QFont::NoAntialias)
+        strategies << "NoAntialias";
+    if (styleStrategy & QFont::OpenGLCompatible)
+        strategies << "OpenGLCompatible";
+    if (styleStrategy & QFont::ForceIntegerMetrics)
+        strategies << "ForceIntegerMetrics";
+    if (styleStrategy & QFont::NoFontMerging)
+        strategies << "NoFontMerging";
+
+    return strategies.join("|");
+}
+
+static const char *s_scriptStrings[QUnicodeTables::ScriptCount] = {
+    "Common",
+    "Greek",
+    "Cyrillic",
+    "Armenian",
+    "Hebrew",
+    "Arabic",
+    "Syriac",
+    "Thaana",
+    "Devanagari",
+    "Bengali",
+    "Gurmukhi",
+    "Gujarati",
+    "Oriya",
+    "Tamil",
+    "Telugu",
+    "Kannada",
+    "Malayalam",
+    "Sinhala",
+    "Thai",
+    "Lao",
+    "Tibetan",
+    "Myanmar",
+    "Georgian",
+    "Hangul",
+    "Ogham",
+    "Runic",
+    "Khmer",
+    "Nko"
+};
+
+static QString qScriptToQString(const QUnicodeTables::Script script) {
+    return QString(s_scriptStrings[script]);
+};
+
+static QString qFontDefToQString(const QFontDef &fontDef) {
+    return QString("{family = '%1', styleName = '%2', pointSize = %3, pixelSize = %4, styleStrategy = %5, styleHint = %6, weight = %7, fixedPitch = %8, style = %9, stretch = %10, ignorePitch = %11, hintingPreference = %12, ...}").arg(fontDef.family).arg(fontDef.styleName).arg(fontDef.pointSize).arg(fontDef.pixelSize).arg(qStyleStrategyToQString(QFont::StyleStrategy(fontDef.styleStrategy))).arg(qStyleHintToQString(QFont::StyleHint(fontDef.styleHint))).arg(qWeightToQString(QFont::Weight(fontDef.weight))).arg(fontDef.fixedPitch ? "true" : "false").arg(qStyleToQString(QFont::Style(fontDef.style))).arg(qStretchToQString(QFont::Stretch(fontDef.stretch))).arg(fontDef.ignorePitch ? "true" : "false").arg(qHintingPreferenceToQString(QFont::HintingPreference(fontDef.hintingPreference)));
 }
 
 void QWebOSFontDatabase::populateFontDatabase()
@@ -306,7 +452,10 @@ void QWebOSFontDatabase::removeAppFontFiles()
 
 QFontEngine *QWebOSFontDatabase::fontEngine(const QFontDef &fontDef, QUnicodeTables::Script script, void *usrPtr)
 {
-    qDebug("fontEngine(fontDef.family = %s, script = %d, usrPtr = %p)", qPrintable(fontDef.family), script, usrPtr);
+    qDebug("fontEngine(fontDef = %s, script = %s, usrPtr = %p)",
+           qPrintable(qFontDefToQString(fontDef)),
+           qPrintable(qScriptToQString(script)),
+           usrPtr);
     QFontEngineFT *engine;
     FontFile *fontfile = static_cast<FontFile *> (usrPtr);
     QFontEngine::FaceId fid;
@@ -337,7 +486,11 @@ QFontEngine *QWebOSFontDatabase::fontEngine(const QFontDef &fontDef, QUnicodeTab
 
 QStringList QWebOSFontDatabase::fallbacksForFamily(const QString family, const QFont::Style &style, const QFont::StyleHint &styleHint, const QUnicodeTables::Script &script) const
 {
-    qDebug("fallbacksForFamily(family = %s, style = %d, styleHint = %d, script = %d)", qPrintable(family), style, styleHint, script);
+    qDebug("fallbacksForFamily(family = '%s', style = %s, styleHint = %s, script = %s)",
+           qPrintable(family),
+           qPrintable(qStyleToQString(style)),
+           qPrintable(qStyleHintToQString(styleHint)),
+           qPrintable(qScriptToQString(script)));
     Q_UNUSED(family);
     Q_UNUSED(style);
     Q_UNUSED(styleHint);
@@ -510,7 +663,14 @@ QStringList QWebOSFontDatabase::addTTFile(const QByteArray &fontData, const QByt
         fontFile->familyName = family;
 
         QFont::Stretch stretch = QFont::Unstretched;
-        qDebug("registerFont(\"%s\",\"\",%d,%d,%d,true,true,0,\"%s\",fontFile = {fileName = \"%s\", indexValue = %d})", qPrintable(family), weight, style, stretch, qPrintable(qSupportedWritingSystemsToQString(writingSystems)), qPrintable(fontFile->fileName), fontFile->indexValue);
+        qDebug("registerFont(\"%s\",\"\",%s,%s,%s,true,true,0,\"%s\",fontFile = {fileName = \"%s\", indexValue = %d})",
+               qPrintable(family),
+               qPrintable(qWeightToQString(weight)),
+               qPrintable(qStyleToQString(style)),
+               qPrintable(qStretchToQString(stretch)),
+               qPrintable(qSupportedWritingSystemsToQString(writingSystems)),
+               qPrintable(fontFile->fileName),
+               fontFile->indexValue);
 
         registerFont(family,"",weight,style,stretch,true,true,0,writingSystems,fontFile);
 
