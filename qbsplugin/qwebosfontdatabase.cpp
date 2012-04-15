@@ -542,22 +542,23 @@ QStringList QWebOSFontDatabase::fallbacksForFamily(const QString family, const Q
            qPrintable(qStyleToQString(style)),
            qPrintable(qStyleHintToQString(styleHint)),
            qPrintable(qScriptToQString(script)));
-    Q_UNUSED(family);
     Q_UNUSED(style);
-    Q_UNUSED(styleHint);
-    Q_UNUSED(script);
 
     QStringList fallbacks = sFallbackFonts;
 
-    if (family == "helvetica") {
-        if (styleHint == QFont::Times || styleHint == QFont::Fantasy || styleHint == QFont::Cursive) {
-            fallbacks = QStringList("times") + sFallbackFonts;
-        } else if (styleHint == QFont::Monospace) {
-            fallbacks = QStringList("monospace") + sFallbackFonts;
-        } else if (styleHint == QFont::Helvetica) {
-            fallbacks = QStringList("helvetica") + sFallbackFonts;
-        }
+    QString familyName = qStyleHintToQString(styleHint).toLower();
+
+    if (familyName == "anystyle")
+        familyName = family;
+
+    if (script == QUnicodeTables::Common) {
+        if (familyName == "system")
+            familyName = "helvetica";
+        if (familyName == "oldenglish")
+            familyName = "serif";
     }
+
+    fallbacks = QStringList(familyName) + sFallbackFonts;
 
     qDebug("returning '%s'", qPrintable(fallbacks.join(",")));
     return fallbacks;
@@ -648,6 +649,10 @@ QStringList QWebOSFontDatabase::addFontFile(const QByteArray &fontData, const QS
 
 QStringList QWebOSFontDatabase::addTTFile(const QByteArray &fontData, const QByteArray &file, const QStringList &additionalFamilies)
 {
+    qDebug("addTTFile(fontData.size() = %d, file = '%s', additionalFamilies = '%s')",
+           fontData.size(),
+           qPrintable(file),
+           qPrintable(additionalFamilies.join(",")));
     extern FT_Library qt_getFreetype();
     FT_Library library = qt_getFreetype();
 
