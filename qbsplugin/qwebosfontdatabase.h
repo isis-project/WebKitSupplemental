@@ -40,8 +40,8 @@
 **
 ****************************************************************************/
 
-#ifndef QBASICUNIXFONTDATABASE_H
-#define QBASICUNIXFONTDATABASE_H
+#ifndef QWEBOSFONTDATABASE_H
+#define QWEBOSFONTDATABASE_H
 
 #include <QPlatformFontDatabase>
 #include <QtCore/QByteArray>
@@ -55,7 +55,7 @@ struct FontFile
     QString familyName;
 };
 
-class QBasicUnixFontDatabase : public QObject, public QPlatformFontDatabase
+class QWebOSFontDatabase : public QObject, public QPlatformFontDatabase
 {
 Q_OBJECT
 public:
@@ -80,4 +80,4 @@ private:
     QStringList m_fontFileList;
 };
 
-#endif // QBASICUNIXFONTDATABASE_H
+#endif // QWEBOSFONTDATABASE_H

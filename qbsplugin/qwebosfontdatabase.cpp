@@ -40,7 +40,7 @@
 **
 ****************************************************************************/
 
-#include "qbasicunixfontdatabase.h"
+#include "qwebosfontdatabase.h"
 #include <QtGui/private/qapplication_p.h>
 #include <QtGui/QPlatformScreen>
 
@@ -242,7 +242,7 @@ static inline bool scriptRequiresOpenType(int script)
             || script == QUnicodeTables::Khmer || script == QUnicodeTables::Nko);
 }
 
-void QBasicUnixFontDatabase::populateFontDatabase()
+void QWebOSFontDatabase::populateFontDatabase()
 {
     if (!sInitialized) {
         removeAppFontFiles();
@@ -268,7 +268,7 @@ void QBasicUnixFontDatabase::populateFontDatabase()
     }
 }
 
-void QBasicUnixFontDatabase::populateFontDatabaseFromAppFonts()
+void QWebOSFontDatabase::populateFontDatabaseFromAppFonts()
 {
     QString fontpath = appFontDir();
 
@@ -287,7 +287,7 @@ void QBasicUnixFontDatabase::populateFontDatabaseFromAppFonts()
     }
 }
 
-void QBasicUnixFontDatabase::removeAppFontFiles()
+void QWebOSFontDatabase::removeAppFontFiles()
 {
     QString fontpath = appFontDir();
 
@@ -304,7 +304,7 @@ void QBasicUnixFontDatabase::removeAppFontFiles()
     }
 }
 
-QFontEngine *QBasicUnixFontDatabase::fontEngine(const QFontDef &fontDef, QUnicodeTables::Script script, void *usrPtr)
+QFontEngine *QWebOSFontDatabase::fontEngine(const QFontDef &fontDef, QUnicodeTables::Script script, void *usrPtr)
 {
     qDebug("fontEngine(fontDef.family = %s, script = %d, usrPtr = %p)", qPrintable(fontDef.family), script, usrPtr);
     QFontEngineFT *engine;
@@ -335,7 +335,7 @@ QFontEngine *QBasicUnixFontDatabase::fontEngine(const QFontDef &fontDef, QUnicod
     return engine;
 }
 
-QStringList QBasicUnixFontDatabase::fallbacksForFamily(const QString family, const QFont::Style &style, const QFont::StyleHint &styleHint, const QUnicodeTables::Script &script) const
+QStringList QWebOSFontDatabase::fallbacksForFamily(const QString family, const QFont::Style &style, const QFont::StyleHint &styleHint, const QUnicodeTables::Script &script) const
 {
     qDebug("fallbacksForFamily(family = %s, style = %d, styleHint = %d, script = %d)", qPrintable(family), style, styleHint, script);
     Q_UNUSED(family);
@@ -357,27 +357,27 @@ QStringList QBasicUnixFontDatabase::fallbacksForFamily(const QString family, con
     return fallbacks;
 }
 
-QStringList QBasicUnixFontDatabase::addApplicationFont(const QByteArray &fontData, const QString &fileName)
+QStringList QWebOSFontDatabase::addApplicationFont(const QByteArray &fontData, const QString &fileName)
 {
     qDebug("addApplicationFont(fontData.size() = %d, fileName = \"%s\")", fontData.size(), qPrintable(fileName.toLocal8Bit()));
 
     if (!m_qApp) {
         m_qApp = (QApplication *) QApplication::instance();
-        QBasicUnixFontDatabase* self = (QBasicUnixFontDatabase *) this;
+        QWebOSFontDatabase* self = (QWebOSFontDatabase *) this;
         connect(m_qApp, SIGNAL(fontDatabaseChanged()), self, SLOT(doFontDatabaseChanged()));
     }
 
     return addFontFile(fontData, fileName);
 }
 
-void QBasicUnixFontDatabase::doFontDatabaseChanged()
+void QWebOSFontDatabase::doFontDatabaseChanged()
 {
     qDebug("doFontDatabaseChanged");
     populateFontDatabase();
     populateFontDatabaseFromAppFonts();
 }
 
-void QBasicUnixFontDatabase::releaseHandle(void *handle)
+void QWebOSFontDatabase::releaseHandle(void *handle)
 {
     FontFile *file = static_cast<FontFile *>(handle);
     qDebug("releaseHandle(%s)", file ? qPrintable(file->fileName) : "null");
@@ -396,12 +396,12 @@ void QBasicUnixFontDatabase::releaseHandle(void *handle)
     delete file;
 }
 
-QString QBasicUnixFontDatabase::appFontDir()
+QString QWebOSFontDatabase::appFontDir()
 {
     return QDir::tempPath() + "/qbs-app-fonts";
 }
 
-bool QBasicUnixFontDatabase::createFileWithFontData(QString& fileName, const QByteArray &fontData)
+bool QWebOSFontDatabase::createFileWithFontData(QString& fileName, const QByteArray &fontData)
 {
     QDir fontDir(appFontDir());
     if (!fontDir.mkpath(fontDir.path())) {
@@ -430,7 +430,7 @@ bool QBasicUnixFontDatabase::createFileWithFontData(QString& fileName, const QBy
     return true;
 }
 
-QStringList QBasicUnixFontDatabase::addFontFile(const QByteArray &fontData, const QString &fileName)
+QStringList QWebOSFontDatabase::addFontFile(const QByteArray &fontData, const QString &fileName)
 {
     QStringList families;
     QString fontFileName = fileName;
@@ -449,7 +449,7 @@ QStringList QBasicUnixFontDatabase::addFontFile(const QByteArray &fontData, cons
     return families;
 }
 
-QStringList QBasicUnixFontDatabase::addTTFile(const QByteArray &fontData, const QByteArray &file)
+QStringList QWebOSFontDatabase::addTTFile(const QByteArray &fontData, const QByteArray &file)
 {
     extern FT_Library qt_getFreetype();
     FT_Library library = qt_getFreetype();

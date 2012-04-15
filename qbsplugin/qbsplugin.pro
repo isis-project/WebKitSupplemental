@@ -15,12 +15,12 @@ SOURCES +=  main.cpp \
             qbsintegration.cpp \
             qbswindowsurface.cpp \
             qminimalwindowsurface.cpp \
-            qbasicunixfontdatabase.cpp
+            qwebosfontdatabase.cpp
 
 HEADERS +=  qbsintegration.h \
             qminimalwindowsurface.h \
             qbswindowsurface.h \
-            qbasicunixfontdatabase.h
+            qwebosfontdatabase.h
 
 INCLUDEPATH += $$QT_BUILD_TREE/include
 INCLUDEPATH += $$QT_BUILD_TREE/include/QtGui
