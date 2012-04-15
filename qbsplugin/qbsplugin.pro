@@ -1,6 +1,7 @@
 TARGET = qbsplugin
 TEMPLATE = lib
 CONFIG += plugin warn_off
+QT += xml
 
 include(externalplugin.pri)
 
@@ -25,6 +26,7 @@ HEADERS +=  qbsintegration.h \
 INCLUDEPATH += $$QT_BUILD_TREE/include
 INCLUDEPATH += $$QT_BUILD_TREE/include/QtGui
 INCLUDEPATH += $$QT_BUILD_TREE/include/QtCore
+INCLUDEPATH += $$QT_BUILD_TREE/include/QtXml
 SOURCES += $$QT_SOURCE_TREE/src/gui/text/qfontengine_ft.cpp
 
 QMAKE_CXXFLAGS += -fno-rtti -fno-exceptions

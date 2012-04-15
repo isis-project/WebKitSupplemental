@@ -49,6 +49,7 @@
 #include <QtCore/QDir>
 
 #include <QCryptographicHash>
+#include <QDomDocument>
 
 #undef QT_NO_FREETYPE
 #include <QtGui/private/qfontengine_ft_p.h>
@@ -58,10 +59,7 @@
 #include FT_TRUETYPE_TABLES_H
 
 static bool sInitialized = false;
-static QString sFallbackTraditionalChineseFontFamily;
-static QString sFallbackSimplfiedChineseFontFamily;
-static QString sFallbackJapaneseFontFamily;
-static QString sFallbackKoreanFontFamily;
+static QStringList sFallbackFonts;
 
 #define SimplifiedChineseCsbBit 18
 #define TraditionalChineseCsbBit 20
@@ -390,6 +388,7 @@ static QString qFontDefToQString(const QFontDef &fontDef) {
 
 void QWebOSFontDatabase::populateFontDatabase()
 {
+    qDebug("populateFontDatabase : sInitialized = %s", sInitialized ? "true" : "false");
     if (!sInitialized) {
         removeAppFontFiles();
         sInitialized = true;
@@ -402,16 +401,66 @@ void QWebOSFontDatabase::populateFontDatabase()
                qPrintable(fontpath));
     }
 
-    QDir dir(fontpath);
-    dir.setNameFilters(QStringList() << QLatin1String("*.ttf")
-                       << QLatin1String("*.ttc") << QLatin1String("*.pfa")
-                       << QLatin1String("*.pfb"));
-    dir.refresh();
-    for (int i = 0; i < int(dir.count()); ++i) {
-        const QString file = dir.absoluteFilePath(dir[i]);
-        qDebug() << "looking at" << file;
-        addFontFile(QByteArray(), file);
+    QString systemFontsFileName = fontpath + "/" + "system_fonts.xml";
+    QDomDocument systemDoc("systemFonts");
+    QFile systemFontsFile(systemFontsFileName);
+
+    if (!systemFontsFile.open(QIODevice::ReadOnly)) {
+        qDebug("Can't find / open %s", qPrintable(systemFontsFileName));
+        return;
     }
+    if (!systemDoc.setContent(&systemFontsFile)) {
+        systemFontsFile.close();
+        qDebug("Could not get content from %s", qPrintable(systemFontsFileName));
+        return;
+    }
+    systemFontsFile.close();
+
+    QDomNodeList familySetNodes = systemDoc.elementsByTagName("familyset");
+    for (int s = 0; s < familySetNodes.size(); ++s) {
+        QDomElement familySet = familySetNodes.at(s).toElement();
+        QDomNodeList familyNodes = familySet.elementsByTagName("family");
+        for (int f = 0; f < familyNodes.size(); ++f) {
+            QDomElement family = familyNodes.at(f).toElement();
+            QStringList additionalFamilies;
+            QDomNodeList nameNodes = family.elementsByTagName("name");
+            QDomNodeList fileNodes = family.elementsByTagName("file");
+            for (int n = 0; n < nameNodes.size(); ++n) {
+                QDomElement nameElem = nameNodes.at(n).toElement();
+                additionalFamilies << nameElem.text();
+            }
+            for (int i = 0; i < fileNodes.size(); ++i) {
+                QDomElement fileElem = fileNodes.at(i).toElement();
+                QString fileName = fontpath + "/" + fileElem.text();
+                (void) addFontFile(QByteArray(), fileName, additionalFamilies);
+            }
+        }
+    }
+
+    QString fallbackFontsFileName = fontpath + "/" + "fallback_fonts.xml";
+    QDomDocument fallbackDoc("fallbackFonts");
+    QFile fallbackFontsFile(fallbackFontsFileName);
+
+    if (!fallbackFontsFile.open(QIODevice::ReadOnly)) {
+        qDebug("Can't find / open %s", qPrintable(fallbackFontsFileName));
+        return;
+    }
+    if (!fallbackDoc.setContent(&fallbackFontsFile)) {
+        fallbackFontsFile.close();
+        qDebug("Could not get content from %s", qPrintable(fallbackFontsFileName));
+        return;
+    }
+    fallbackFontsFile.close();
+
+    QDomNodeList fileNodes = fallbackDoc.elementsByTagName("file");
+    for (int i = 0; i < fileNodes.size(); ++i) {
+        QDomElement fileElem = fileNodes.at(i).toElement();
+        QString fileName = fontpath + "/" + fileElem.text();
+        QStringList families = addFontFile(QByteArray(), fileName, QStringList());
+        sFallbackFonts << families;
+    }
+    sFallbackFonts.removeDuplicates();
+
 }
 
 void QWebOSFontDatabase::populateFontDatabaseFromAppFonts()
@@ -429,7 +478,7 @@ void QWebOSFontDatabase::populateFontDatabaseFromAppFonts()
     for (int i = 0; i < int(dir.count()); ++i) {
         const QString file = dir.absoluteFilePath(dir[i]);
         qDebug() << "looking at" << file;
-        addFontFile(QByteArray(), file);
+        addFontFile(QByteArray(), file, QStringList());
     }
 }
 
@@ -452,12 +501,14 @@ void QWebOSFontDatabase::removeAppFontFiles()
 
 QFontEngine *QWebOSFontDatabase::fontEngine(const QFontDef &fontDef, QUnicodeTables::Script script, void *usrPtr)
 {
-    qDebug("fontEngine(fontDef = %s, script = %s, usrPtr = %p)",
+    FontFile *fontfile = static_cast<FontFile *> (usrPtr);
+    qDebug("fontEngine(fontDef = %s, script = %s, fontFile = {fileName = %s, indexValue = %d, familyName = '%s'})",
            qPrintable(qFontDefToQString(fontDef)),
            qPrintable(qScriptToQString(script)),
-           usrPtr);
+           qPrintable(fontfile->fileName),
+           fontfile->indexValue,
+           qPrintable(fontfile->familyName));
     QFontEngineFT *engine;
-    FontFile *fontfile = static_cast<FontFile *> (usrPtr);
     QFontEngine::FaceId fid;
     fid.filename = fontfile->fileName.toLocal8Bit();
     fid.index = fontfile->indexValue;
@@ -496,17 +547,19 @@ QStringList QWebOSFontDatabase::fallbacksForFamily(const QString family, const Q
     Q_UNUSED(styleHint);
     Q_UNUSED(script);
 
-    QStringList fallbacks;
+    QStringList fallbacks = sFallbackFonts;
 
-    if (!sFallbackSimplfiedChineseFontFamily.isEmpty())
-        fallbacks << sFallbackSimplfiedChineseFontFamily;
-    if (!sFallbackTraditionalChineseFontFamily.isEmpty())
-        fallbacks << sFallbackTraditionalChineseFontFamily;
-    if (!sFallbackJapaneseFontFamily.isEmpty())
-        fallbacks << sFallbackJapaneseFontFamily;
-    if (!sFallbackKoreanFontFamily.isEmpty())
-        fallbacks << sFallbackKoreanFontFamily;
+    if (family == "helvetica") {
+        if (styleHint == QFont::Times || styleHint == QFont::Fantasy || styleHint == QFont::Cursive) {
+            fallbacks = QStringList("times") + sFallbackFonts;
+        } else if (styleHint == QFont::Monospace) {
+            fallbacks = QStringList("monospace") + sFallbackFonts;
+        } else if (styleHint == QFont::Helvetica) {
+            fallbacks = QStringList("helvetica") + sFallbackFonts;
+        }
+    }
 
+    qDebug("returning '%s'", qPrintable(fallbacks.join(",")));
     return fallbacks;
 }
 
@@ -520,7 +573,7 @@ QStringList QWebOSFontDatabase::addApplicationFont(const QByteArray &fontData, c
         connect(m_qApp, SIGNAL(fontDatabaseChanged()), self, SLOT(doFontDatabaseChanged()));
     }
 
-    return addFontFile(fontData, fileName);
+    return addFontFile(fontData, fileName, QStringList());
 }
 
 void QWebOSFontDatabase::doFontDatabaseChanged()
@@ -536,15 +589,6 @@ void QWebOSFontDatabase::releaseHandle(void *handle)
     qDebug("releaseHandle(%s)", file ? qPrintable(file->fileName) : "null");
 
     m_fontFileList.removeAll(file->fileName);
-
-    if (sFallbackSimplfiedChineseFontFamily == file->familyName)
-        sFallbackSimplfiedChineseFontFamily = "";
-    if (sFallbackTraditionalChineseFontFamily == file->familyName)
-        sFallbackTraditionalChineseFontFamily = "";
-    if (sFallbackJapaneseFontFamily == file->familyName)
-        sFallbackJapaneseFontFamily = "";
-    if (sFallbackKoreanFontFamily == file->familyName)
-        sFallbackKoreanFontFamily = "";
 
     delete file;
 }
@@ -583,7 +627,7 @@ bool QWebOSFontDatabase::createFileWithFontData(QString& fileName, const QByteAr
     return true;
 }
 
-QStringList QWebOSFontDatabase::addFontFile(const QByteArray &fontData, const QString &fileName)
+QStringList QWebOSFontDatabase::addFontFile(const QByteArray &fontData, const QString &fileName, const QStringList &additionalFamilies)
 {
     QStringList families;
     QString fontFileName = fileName;
@@ -596,97 +640,97 @@ QStringList QWebOSFontDatabase::addFontFile(const QByteArray &fontData, const QS
     }
 
     if (!m_fontFileList.contains(fontFileName)) {
-        families = addTTFile(data, fontFileName.toLocal8Bit());
+        families = addTTFile(data, fontFileName.toLocal8Bit(), additionalFamilies);
         m_fontFileList << fontFileName;
     }
     return families;
 }
 
-QStringList QWebOSFontDatabase::addTTFile(const QByteArray &fontData, const QByteArray &file)
+QStringList QWebOSFontDatabase::addTTFile(const QByteArray &fontData, const QByteArray &file, const QStringList &additionalFamilies)
 {
     extern FT_Library qt_getFreetype();
     FT_Library library = qt_getFreetype();
 
-    int index = 0;
     int numFaces = 0;
+    int index = 0;
     QStringList families;
-    do {
-        FT_Face face;
-        FT_Error error;
-        if (!fontData.isEmpty()) {
-            error = FT_New_Memory_Face(library, (const FT_Byte *)fontData.constData(), fontData.size(), index, &face);
-        } else {
-            error = FT_New_Face(library, file.constData(), index, &face);
-        }
-        if (error != FT_Err_Ok) {
-            qDebug() << "FT_New_Face failed with index" << index << ":" << hex << error;
+
+    FT_Face face;
+    FT_Error error;
+    if (!fontData.isEmpty()) {
+        error = FT_New_Memory_Face(library, (const FT_Byte *)fontData.constData(), fontData.size(), index, &face);
+    } else {
+        error = FT_New_Face(library, file.constData(), index, &face);
+    }
+    if (error != FT_Err_Ok) {
+        qDebug() << "FT_New_Face failed with index" << index << ":" << hex << error;
+        return families;
+    }
+
+    numFaces = face->num_faces;
+    if (numFaces > 1) {
+        qDebug() << "numFaces is " << numFaces << ", expected just 1";
+    }
+
+    QFont::Weight weight = QFont::Normal;
+
+    QFont::Style style = QFont::StyleNormal;
+    if (face->style_flags & FT_STYLE_FLAG_ITALIC)
+        style = QFont::StyleItalic;
+
+    if (face->style_flags & FT_STYLE_FLAG_BOLD)
+        weight = QFont::Bold;
+
+    QSupportedWritingSystems writingSystems;
+    // detect symbol fonts
+    for (int i = 0; i < face->num_charmaps; ++i) {
+        FT_CharMap cm = face->charmaps[i];
+        if (cm->encoding == ft_encoding_adobe_custom
+            || cm->encoding == ft_encoding_symbol) {
+            writingSystems.setSupported(QFontDatabase::Symbol);
             break;
         }
-        numFaces = face->num_faces;
+    }
 
-        QFont::Weight weight = QFont::Normal;
+    TT_OS2 *os2 = (TT_OS2 *)FT_Get_Sfnt_Table(face, ft_sfnt_os2);
+    if (os2) {
+        quint32 unicodeRange[4] = {
+            os2->ulUnicodeRange1, os2->ulUnicodeRange2, os2->ulUnicodeRange3, os2->ulUnicodeRange4
+        };
+        quint32 codePageRange[2] = {
+            os2->ulCodePageRange1, os2->ulCodePageRange2
+        };
 
-        QFont::Style style = QFont::StyleNormal;
-        if (face->style_flags & FT_STYLE_FLAG_ITALIC)
-            style = QFont::StyleItalic;
+        writingSystems = determineWritingSystemsFromTrueTypeBits(unicodeRange, codePageRange);
+    }
 
-        if (face->style_flags & FT_STYLE_FLAG_BOLD)
-            weight = QFont::Bold;
+    QString family = QString::fromAscii(face->family_name);
 
-        QSupportedWritingSystems writingSystems;
-        // detect symbol fonts
-        for (int i = 0; i < face->num_charmaps; ++i) {
-            FT_CharMap cm = face->charmaps[i];
-            if (cm->encoding == ft_encoding_adobe_custom
-                    || cm->encoding == ft_encoding_symbol) {
-                writingSystems.setSupported(QFontDatabase::Symbol);
-                break;
-            }
-        }
+    QFont::Stretch stretch = QFont::Unstretched;
 
-        TT_OS2 *os2 = (TT_OS2 *)FT_Get_Sfnt_Table(face, ft_sfnt_os2);
-        if (os2) {
-            quint32 unicodeRange[4] = {
-                os2->ulUnicodeRange1, os2->ulUnicodeRange2, os2->ulUnicodeRange3, os2->ulUnicodeRange4
-                    };
-            quint32 codePageRange[2] = {
-                os2->ulCodePageRange1, os2->ulCodePageRange2
-                    };
+    QStringList allFamilies(family);
+    allFamilies << additionalFamilies;
 
-            writingSystems = determineWritingSystemsFromTrueTypeBits(unicodeRange, codePageRange);
-        }
-
-        QString family = QString::fromAscii(face->family_name);
+    for (int i = 0; i < allFamilies.size(); ++i) {
         FontFile *fontFile = new FontFile;
         fontFile->fileName = file;
         fontFile->indexValue = index;
-        fontFile->familyName = family;
-
-        QFont::Stretch stretch = QFont::Unstretched;
-        qDebug("registerFont(\"%s\",\"\",%s,%s,%s,true,true,0,\"%s\",fontFile = {fileName = \"%s\", indexValue = %d})",
-               qPrintable(family),
+        fontFile->familyName = allFamilies.at(i);
+        qDebug("registerFont(\"%s\",\"\",%s,%s,%s,true,true,0,\"%s\",fontFile = {fileName = \"%s\", indexValue = %d, familyName = %s})",
+               qPrintable(allFamilies.at(i)),
                qPrintable(qWeightToQString(weight)),
                qPrintable(qStyleToQString(style)),
                qPrintable(qStretchToQString(stretch)),
                qPrintable(qSupportedWritingSystemsToQString(writingSystems)),
                qPrintable(fontFile->fileName),
-               fontFile->indexValue);
+               fontFile->indexValue,
+               qPrintable(fontFile->familyName));
 
-        registerFont(family,"",weight,style,stretch,true,true,0,writingSystems,fontFile);
-
+        registerFont(allFamilies.at(i),"",weight,style,stretch,true,true,0,writingSystems,fontFile);
         families.append(family);
+    }
 
-        if (sFallbackSimplfiedChineseFontFamily.isEmpty() && writingSystems.supported(QFontDatabase::SimplifiedChinese))
-            sFallbackSimplfiedChineseFontFamily = family;
-        if (sFallbackTraditionalChineseFontFamily.isEmpty() && writingSystems.supported(QFontDatabase::TraditionalChinese))
-            sFallbackTraditionalChineseFontFamily = family;
-        if (sFallbackJapaneseFontFamily.isEmpty() && writingSystems.supported(QFontDatabase::Japanese))
-            sFallbackJapaneseFontFamily = family;
-        if (sFallbackKoreanFontFamily.isEmpty() && writingSystems.supported(QFontDatabase::Korean))
-            sFallbackKoreanFontFamily = family;
+    FT_Done_Face(face);
 
-        FT_Done_Face(face);
-        ++index;
-    } while (index < numFaces);
     return families;
 }

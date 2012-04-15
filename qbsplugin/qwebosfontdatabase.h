@@ -65,7 +65,7 @@ public:
     QStringList addApplicationFont(const QByteArray &fontData, const QString &fileName);
     void releaseHandle(void *handle);
 
-    static QStringList addTTFile(const QByteArray &fontData, const QByteArray &file);
+    static QStringList addTTFile(const QByteArray &fontData, const QByteArray &file, const QStringList &additionalFamilies);
 
 public Q_SLOTS:
     void doFontDatabaseChanged();
@@ -74,7 +74,7 @@ private:
     QString appFontDir();
     void populateFontDatabaseFromAppFonts();
     void removeAppFontFiles();
-    QStringList addFontFile(const QByteArray &fontData, const QString &fileName);
+    QStringList addFontFile(const QByteArray &fontData, const QString &fileName, const QStringList &additionalFamilies);
     bool createFileWithFontData(QString& fileName, const QByteArray &fontData);
     QApplication* m_qApp;
     QStringList m_fontFileList;
