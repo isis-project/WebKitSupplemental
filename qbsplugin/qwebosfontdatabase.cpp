@@ -58,9 +58,6 @@
 #include <ft2build.h>
 #include FT_TRUETYPE_TABLES_H
 
-static bool sInitialized = false;
-static QStringList sFallbackFonts;
-
 #define SimplifiedChineseCsbBit 18
 #define TraditionalChineseCsbBit 20
 #define JapaneseCsbBit 17
@@ -388,10 +385,12 @@ static QString qFontDefToQString(const QFontDef &fontDef) {
 
 void QWebOSFontDatabase::populateFontDatabase()
 {
-    qDebug("populateFontDatabase : sInitialized = %s", sInitialized ? "true" : "false");
-    if (!sInitialized) {
+    if (m_debug)
+        qDebug("populateFontDatabase : m_initialized = %s", m_initialized ? "true" : "false");
+
+    if (!m_initialized) {
         removeAppFontFiles();
-        sInitialized = true;
+        m_initialized = true;
     }
     QString fontpath = fontDir();
 
@@ -456,9 +455,9 @@ void QWebOSFontDatabase::populateFontDatabase()
         QDomElement fileElem = fileNodes.at(i).toElement();
         QString fileName = fontpath + "/" + fileElem.text();
         QStringList families = addFontFile(QByteArray(), fileName, QStringList());
-        sFallbackFonts << families;
+        m_fallbackFonts << families;
     }
-    sFallbackFonts.removeDuplicates();
+    m_fallbackFonts.removeDuplicates();
 
 }
 
@@ -476,7 +475,8 @@ void QWebOSFontDatabase::populateFontDatabaseFromAppFonts()
     dir.refresh();
     for (int i = 0; i < int(dir.count()); ++i) {
         const QString file = dir.absoluteFilePath(dir[i]);
-        qDebug() << "looking at" << file;
+        if (m_debug)
+            qDebug() << "looking at" << file;
         addFontFile(QByteArray(), file, QStringList());
     }
 }
@@ -486,7 +486,8 @@ void QWebOSFontDatabase::removeAppFontFiles()
     QString fontpath = appFontDir();
 
     if(!QFile::exists(fontpath)) {
-        qDebug("QFontDatabase: Cannot find app font directory %s", qPrintable(fontpath));
+        if (m_debug)
+            qDebug("QWebOSFontDatabase: Cannot find app font directory %s", qPrintable(fontpath));
         return;
     }
 
@@ -501,12 +502,13 @@ void QWebOSFontDatabase::removeAppFontFiles()
 QFontEngine *QWebOSFontDatabase::fontEngine(const QFontDef &fontDef, QUnicodeTables::Script script, void *usrPtr)
 {
     FontFile *fontfile = static_cast<FontFile *> (usrPtr);
-    qDebug("fontEngine(fontDef = %s, script = %s, fontFile = {fileName = %s, indexValue = %d, familyName = '%s'})",
-           qPrintable(qFontDefToQString(fontDef)),
-           qPrintable(qScriptToQString(script)),
-           qPrintable(fontfile->fileName),
-           fontfile->indexValue,
-           qPrintable(fontfile->familyName));
+    if (m_debug)
+        qDebug("fontEngine(fontDef = %s, script = %s, fontFile = {fileName = %s, indexValue = %d, familyName = '%s'})",
+               qPrintable(qFontDefToQString(fontDef)),
+               qPrintable(qScriptToQString(script)),
+               qPrintable(fontfile->fileName),
+               fontfile->indexValue,
+               qPrintable(fontfile->familyName));
     QFontEngineFT *engine;
     QFontEngine::FaceId fid;
     fid.filename = fontfile->fileName.toLocal8Bit();
@@ -536,13 +538,12 @@ QFontEngine *QWebOSFontDatabase::fontEngine(const QFontDef &fontDef, QUnicodeTab
 
 QStringList QWebOSFontDatabase::fallbacksForFamily(const QString family, const QFont::Style &style, const QFont::StyleHint &styleHint, const QUnicodeTables::Script &script) const
 {
-    qDebug("fallbacksForFamily(family = '%s', style = %s, styleHint = %s, script = %s)",
-           qPrintable(family),
-           qPrintable(qStyleToQString(style)),
-           qPrintable(qStyleHintToQString(styleHint)),
-           qPrintable(qScriptToQString(script)));
-
-    QStringList fallbacks = sFallbackFonts;
+    if (m_debug)
+        qDebug("fallbacksForFamily(family = '%s', style = %s, styleHint = %s, script = %s)",
+               qPrintable(family),
+               qPrintable(qStyleToQString(style)),
+               qPrintable(qStyleHintToQString(styleHint)),
+               qPrintable(qScriptToQString(script)));
 
     QString familyName = qStyleHintToQString(styleHint).toLower();
 
@@ -556,15 +557,17 @@ QStringList QWebOSFontDatabase::fallbacksForFamily(const QString family, const Q
             familyName = "serif";
     }
 
-    fallbacks = QStringList(familyName) + sFallbackFonts;
+    QStringList fallbacks = QStringList(familyName) + m_fallbackFonts;
 
-    qDebug("returning '%s'", qPrintable(fallbacks.join(",")));
+    if (m_debug)
+        qDebug("returning '%s'", qPrintable(fallbacks.join(",")));
     return fallbacks;
 }
 
 QStringList QWebOSFontDatabase::addApplicationFont(const QByteArray &fontData, const QString &fileName)
 {
-    qDebug("addApplicationFont(fontData.size() = %d, fileName = \"%s\")", fontData.size(), qPrintable(fileName.toLocal8Bit()));
+    if (m_debug)
+        qDebug("addApplicationFont(fontData.size() = %d, fileName = \"%s\")", fontData.size(), qPrintable(fileName.toLocal8Bit()));
 
     if (!m_qApp) {
         m_qApp = (QApplication *) QApplication::instance();
@@ -577,7 +580,8 @@ QStringList QWebOSFontDatabase::addApplicationFont(const QByteArray &fontData, c
 
 void QWebOSFontDatabase::doFontDatabaseChanged()
 {
-    qDebug("doFontDatabaseChanged");
+    if (m_debug)
+        qDebug("doFontDatabaseChanged");
     populateFontDatabase();
     populateFontDatabaseFromAppFonts();
 }
@@ -585,7 +589,8 @@ void QWebOSFontDatabase::doFontDatabaseChanged()
 void QWebOSFontDatabase::releaseHandle(void *handle)
 {
     FontFile *file = static_cast<FontFile *>(handle);
-    qDebug("releaseHandle(%s)", file ? qPrintable(file->fileName) : "null");
+    if (m_debug)
+        qDebug("releaseHandle(%s)", file ? qPrintable(file->fileName) : "null");
 
     m_fontFileList.removeAll(file->fileName);
 
@@ -639,18 +644,19 @@ QStringList QWebOSFontDatabase::addFontFile(const QByteArray &fontData, const QS
     }
 
     if (!m_fontFileList.contains(fontFileName)) {
-        families = addTTFile(data, fontFileName.toLocal8Bit(), additionalFamilies);
+        families = addTTFile(this, data, fontFileName.toLocal8Bit(), additionalFamilies);
         m_fontFileList << fontFileName;
     }
     return families;
 }
 
-QStringList QWebOSFontDatabase::addTTFile(const QByteArray &fontData, const QByteArray &file, const QStringList &additionalFamilies)
+QStringList QWebOSFontDatabase::addTTFile(QWebOSFontDatabase* qwfdb, const QByteArray &fontData, const QByteArray &file, const QStringList &additionalFamilies)
 {
-    qDebug("addTTFile(fontData.size() = %d, file = '%s', additionalFamilies = '%s')",
-           fontData.size(),
-           qPrintable(file),
-           qPrintable(additionalFamilies.join(",")));
+    if (qwfdb && qwfdb->m_debug)
+        qDebug("addTTFile(fontData.size() = %d, file = '%s', additionalFamilies = '%s')",
+               fontData.size(),
+               qPrintable(file),
+               qPrintable(additionalFamilies.join(",")));
     extern FT_Library qt_getFreetype();
     FT_Library library = qt_getFreetype();
 
@@ -666,13 +672,13 @@ QStringList QWebOSFontDatabase::addTTFile(const QByteArray &fontData, const QByt
         error = FT_New_Face(library, file.constData(), index, &face);
     }
     if (error != FT_Err_Ok) {
-        qDebug() << "FT_New_Face failed with index" << index << ":" << hex << error;
+        qDebug() << "FT_New_Face for " << qPrintable(file) << " failed with index" << index << ":" << hex << error;
         return families;
     }
 
     numFaces = face->num_faces;
     if (numFaces > 1) {
-        qDebug() << "numFaces is " << numFaces << ", expected just 1";
+        qDebug() << "numFaces for " << qPrintable(file) << " is " << numFaces << ", expected just 1";
     }
 
     QFont::Weight weight = QFont::Normal;
@@ -719,15 +725,16 @@ QStringList QWebOSFontDatabase::addTTFile(const QByteArray &fontData, const QByt
         fontFile->fileName = file;
         fontFile->indexValue = index;
         fontFile->familyName = allFamilies.at(i);
-        qDebug("registerFont(\"%s\",\"\",%s,%s,%s,true,true,0,\"%s\",fontFile = {fileName = \"%s\", indexValue = %d, familyName = %s})",
-               qPrintable(allFamilies.at(i)),
-               qPrintable(qWeightToQString(weight)),
-               qPrintable(qStyleToQString(style)),
-               qPrintable(qStretchToQString(stretch)),
-               qPrintable(qSupportedWritingSystemsToQString(writingSystems)),
-               qPrintable(fontFile->fileName),
-               fontFile->indexValue,
-               qPrintable(fontFile->familyName));
+        if (qwfdb && qwfdb->m_debug)
+            qDebug("registerFont(\"%s\",\"\",%s,%s,%s,true,true,0,\"%s\",fontFile = {fileName = \"%s\", indexValue = %d, familyName = %s})",
+                   qPrintable(allFamilies.at(i)),
+                   qPrintable(qWeightToQString(weight)),
+                   qPrintable(qStyleToQString(style)),
+                   qPrintable(qStretchToQString(stretch)),
+                   qPrintable(qSupportedWritingSystemsToQString(writingSystems)),
+                   qPrintable(fontFile->fileName),
+                   fontFile->indexValue,
+                   qPrintable(fontFile->familyName));
 
         registerFont(allFamilies.at(i),"",weight,style,stretch,true,true,0,writingSystems,fontFile);
         families.append(family);

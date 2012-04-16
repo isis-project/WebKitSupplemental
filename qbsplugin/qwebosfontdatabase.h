@@ -59,13 +59,14 @@ class QWebOSFontDatabase : public QObject, public QPlatformFontDatabase
 {
 Q_OBJECT
 public:
+    QWebOSFontDatabase() : m_initialized(false), m_debug(false), m_qApp(NULL) {}
     void populateFontDatabase();
     QFontEngine *fontEngine(const QFontDef &fontDef, QUnicodeTables::Script script, void *handle);
     QStringList fallbacksForFamily(const QString family, const QFont::Style &style, const QFont::StyleHint &styleHint, const QUnicodeTables::Script &script) const;
     QStringList addApplicationFont(const QByteArray &fontData, const QString &fileName);
     void releaseHandle(void *handle);
 
-    static QStringList addTTFile(const QByteArray &fontData, const QByteArray &file, const QStringList &additionalFamilies);
+    static QStringList addTTFile(QWebOSFontDatabase* qwfdb, const QByteArray &fontData, const QByteArray &file, const QStringList &additionalFamilies);
 
 public Q_SLOTS:
     void doFontDatabaseChanged();
@@ -76,6 +77,9 @@ private:
     void removeAppFontFiles();
     QStringList addFontFile(const QByteArray &fontData, const QString &fileName, const QStringList &additionalFamilies);
     bool createFileWithFontData(QString& fileName, const QByteArray &fontData);
+    bool m_initialized;
+    bool m_debug;
+    QStringList m_fallbackFonts;
     QApplication* m_qApp;
     QStringList m_fontFileList;
 };
