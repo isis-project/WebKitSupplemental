@@ -42,7 +42,7 @@
 
 #include "qbsintegration.h"
 #include "qbswindowsurface.h"
-#include "qbasicunixfontdatabase.h"
+#include "qwebosfontdatabase.h"
 #include "qminimalwindowsurface.h"
 
 #include <QDebug>
@@ -51,7 +51,7 @@
 #include <QtGui/private/qpixmap_raster_p.h>
 
 QBsIntegration::QBsIntegration()
-    : mFontDb(new QBasicUnixFontDatabase())
+    : mFontDb(new QWebOSFontDatabase())
 {
     QBsScreen* mPrimaryScreen = new QBsScreen();
 
