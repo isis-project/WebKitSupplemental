@@ -393,7 +393,6 @@ void QWebOSFontDatabase::populateFontDatabase()
         removeAppFontFiles();
         sInitialized = true;
     }
-    QPlatformFontDatabase::populateFontDatabase();
     QString fontpath = fontDir();
 
     if(!QFile::exists(fontpath)) {
@@ -468,7 +467,7 @@ void QWebOSFontDatabase::populateFontDatabaseFromAppFonts()
     QString fontpath = appFontDir();
 
     if(!QFile::exists(fontpath)) {
-        qDebug("QFontDatabase: Cannot find app font directory %s", qPrintable(fontpath));
+        qDebug("QWebOSFontDatabase: Cannot find app font directory %s", qPrintable(fontpath));
         return;
     }
 
@@ -542,7 +541,6 @@ QStringList QWebOSFontDatabase::fallbacksForFamily(const QString family, const Q
            qPrintable(qStyleToQString(style)),
            qPrintable(qStyleHintToQString(styleHint)),
            qPrintable(qScriptToQString(script)));
-    Q_UNUSED(style);
 
     QStringList fallbacks = sFallbackFonts;
 
