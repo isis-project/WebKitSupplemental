@@ -7,7 +7,40 @@
 # This special exception was added by Craig Small in version 0.37 of dh-make.
 
 # Uncomment this to turn on verbose mode.
-#export DH_VERBOSE=1
+export DH_VERBOSE=1
+export DEB_STAGING_INCDIR=debian/webkitsupplemental/usr/include/WebKitSupplemental
+export DEB_STAGING_LIBDIR=debian/webkitsupplemental/usr/lib
 
 %:
 	dh $@ 
+
+.PHONY: override_dh_auto_build override_dh_auto_test override_dh_install
+
+override_dh_auto_build:
+
+override_dh_auto_test:
+
+override_dh_auto_clean:
+
+override_dh_install:
+
+override_dh_auto_install:
+
+override_dh_installdirs:
+	mkdir -p $(DEB_STAGING_LIBDIR)
+	install -m 444 ./qtwebkitplugin/*.so $(DEB_STAGING_LIBDIR)
+	install -m 444 ./qbsplugin/*.so $(DEB_STAGING_LIBDIR)
+	install -m 444 ./misc/*.a $(DEB_STAGING_LIBDIR)
+	install -m 444 ./widgets/*.a $(DEB_STAGING_LIBDIR)
+
+	mkdir -p $(DEB_STAGING_INCDIR)
+	install -m 444 ./widgets/*.h $(DEB_STAGING_INCDIR)
+	install -m 444 ./qtwebkitplugin/*.h $(DEB_STAGING_INCDIR)
+	install -m 444 ./misc/*.h $(DEB_STAGING_INCDIR)
+	install -m 444 ./qbsplugin/*.h $(DEB_STAGING_INCDIR)
+
+# This is temporary until we sort out the dependencies
+override_dh_shlibdeps:
+
+#override_dh_clean:
+
