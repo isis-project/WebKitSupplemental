@@ -43,6 +43,7 @@
 
 #include "qminimalwindowsurface.h"
 #include <QtCore/qdebug.h>
+#include <QtGui/QPlatformNativeInterface>
 #include <QtGui/private/qapplication_p.h>
 
 QT_BEGIN_NAMESPACE

@@ -41,6 +41,7 @@
 ****************************************************************************/
 
 #include "qwebosfontdatabase.h"
+#include <QtGui/QPlatformNativeInterface>
 #include <QtGui/private/qapplication_p.h>
 #include <QtGui/QPlatformScreen>
 

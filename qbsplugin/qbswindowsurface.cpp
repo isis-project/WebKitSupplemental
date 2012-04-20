@@ -18,6 +18,7 @@ LICENSE@@@ */
 
 #include "qbswindowsurface.h"
 #include <QtCore/qdebug.h>
+#include <QtGui/QPlatformNativeInterface>
 #include <QtGui/private/qapplication_p.h>
 
 extern "C" {

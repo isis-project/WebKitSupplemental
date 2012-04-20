@@ -230,11 +230,10 @@ void PhrasePickerWidget::clearPhraseList()
         // remove phrase items from the scene and destroy them
         scene()->removeItem(item);
 
-        QObject* actualItem = dynamic_cast<QObject*>(item);
-        Q_ASSERT(actualItem);
-
-        if (actualItem)
+        if (item->type() == PickerItem::PickerGraphicType || item->type() == PickerItem::PickerGraphicClassType) {
+            QObject* actualItem = reinterpret_cast<QObject*>(item);
             actualItem->deleteLater();
+        }
     }
     m_phraseList.clear();
 

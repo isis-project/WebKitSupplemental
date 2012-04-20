@@ -34,7 +34,7 @@ class PickerItem : public QObject {
 
 public:
 
-    enum { PickerPhraseType = QGraphicsItem::UserType + 1, PickerGraphicType};
+    enum { PickerPhraseType = QGraphicsItem::UserType + 1, PickerGraphicType, PickerGraphicClassType};
 
     PickerItem() : m_clickInProgress(false), m_dragInProgress(false) { }
 
@@ -100,6 +100,9 @@ protected:
     virtual void mouseMoveEvent(QGraphicsSceneMouseEvent* event) { m_item.mouseMove(event); }
     virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) { m_item.mouseRelease(event); }
     virtual bool sceneEvent(QEvent *event) { return m_item.scene(event); }
+
+    // this is needed for qgraphicsitem_cast to work
+    virtual int type() const { return PickerItem::PickerGraphicClassType; }
 
     // NB: note this class currently ignores the itemClicked event from m_item because it's not necessary. This could easily be changed.
 
