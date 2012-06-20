@@ -43,9 +43,6 @@ isEmpty(STAGING_INCDIR):STAGING_INCDIR = $$(STAGING_DIR)/include
 STAGING_LIBDIR = $$(STAGING_LIBDIR)
 isEmpty(STAGING_LIBDIR):STAGING_LIBDIR = $$(STAGING_DIR)/lib
 
-STAGING_FONTSDIR = $$(STAGING_FONTSDIR)
-isEmpty(STAGING_FONTSDIR):STAGING_FONTSDIR = $$(STAGING_LIBDIR)/fonts
-
 #install headers
 headers.path = $${STAGING_INCDIR}/WebKitSupplemental
 headers.files += \
@@ -56,37 +53,3 @@ INSTALLS += headers
 #install lib
 target.path = $$(STAGING_DIR)/plugins/platforms
 INSTALLS += target
-
-#install fonts
-fonts.path = $${STAGING_FONTSDIR}
-fonts.files += \
-    fonts/Roboto-Regular.ttf \
-    fonts/Roboto-Bold.ttf \
-    fonts/Roboto-Italic.ttf \
-    fonts/Roboto-BoldItalic.ttf \
-    fonts/DroidSerif-Regular.ttf \
-    fonts/DroidSerif-Bold.ttf \
-    fonts/DroidSerif-Italic.ttf \
-    fonts/DroidSerif-BoldItalic.ttf \
-    fonts/DroidSans.ttf \
-    fonts/DroidSans-Bold.ttf \
-    fonts/DroidSansMono.ttf \
-    fonts/DroidNaskh-Regular.ttf \
-    fonts/DroidSansEthiopic-Regular.ttf \
-    fonts/DroidSansHebrew-Regular.ttf \
-    fonts/DroidSansHebrew-Bold.ttf \
-    fonts/DroidSansThai.ttf \
-    fonts/DroidSansArmenian.ttf \
-    fonts/DroidSansGeorgian.ttf \
-    fonts/Lohit-Devanagari.ttf \
-    fonts/Lohit-Bengali.ttf \
-    fonts/Lohit-Tamil.ttf \
-    fonts/DroidSansJapanese.ttf \
-    fonts/NanumGothic.ttf \
-    fonts/NanumMyeongjo.ttf \
-    fonts/DroidSansFallback.ttf \
-    fonts/system_fonts.xml \
-    fonts/fallback_fonts.xml
-
-INSTALLS += fonts
-
