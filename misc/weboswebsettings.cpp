@@ -65,6 +65,7 @@ static const QString WEB_SETTINGS_KEY_OBJ_CACHE_CAPACITY_MAX                = QL
 static const QString WEB_SETTINGS_KEY_OBJ_CACHE_CAPACITY_OVERALL            = QLatin1String("WebSettings/ObjectCacheCapacityOverall");
 static const QString WEB_SETTINGS_KEY_PLUGIN_SUPPLEMENTAL_PATH              = QLatin1String("WebSettings/PluginSupplementalPath");
 static const QString WEB_SETTINGS_KEY_PLUGIN_SUPPLEMENTAL_USER_PATH         = QLatin1String("WebSettings/PluginSupplementalUserPath");
+static const QString WEB_SETTINGS_KEY_FULLSCREEN_API                        = QLatin1String("WebSettings/FullScreenEnabled");
 
 }
 
@@ -253,6 +254,9 @@ bool WebSettings::initWebSettings()
 
     if (!supplementalPath.isEmpty())
         globalWebSettings->setPluginSupplementalPath(supplementalPath.join(QLatin1String(":")));
+
+    if (settings.contains(WEB_SETTINGS_KEY_FULLSCREEN_API))
+        globalWebSettings->setAttribute(QWebSettings::FullScreenEnabled, settings.value(WEB_SETTINGS_KEY_FULLSCREEN_API).toBool());
 
     return true;
 }
