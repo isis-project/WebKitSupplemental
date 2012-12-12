@@ -147,16 +147,16 @@ PhrasePickerWidget::PhrasePickerWidget(QObject* parent, int maxWidth, QString pa
       m_hasRenderedWithCurrentPhrases(false), m_lastArrowDir(arrowDown), m_lastArrowOffset(0), m_leftScrollFadeItem(0),
       m_rightScrollFadeItem(0), m_phraseGroup(0), m_fadeInTimerId(0), m_fadeOutTimerId(0), m_opacity(0), m_fadeEffect(0)
 {
-    bool succeeded = m_leftBG.load(pathToImageDir + kLeftBGFilename);
-    succeeded = succeeded && m_fillerBG.load(pathToImageDir + kFillerBGFilename);
-    succeeded = succeeded && m_rightBG.load(pathToImageDir + kRightBGFilename);
-    succeeded = succeeded && m_arrowUpBG.load(pathToImageDir + kUpArrowBGFilename);
-    succeeded = succeeded && m_arrowDownBG.load(pathToImageDir + kDownArrowBGFilename);
-    succeeded = succeeded && m_dividerImage.load(pathToImageDir + kDividerFilename);
+    bool succeeded = m_leftBG.load(pathToImageDir + QString::fromUtf8(kLeftBGFilename));
+    succeeded = succeeded && m_fillerBG.load(pathToImageDir + QString::fromUtf8(kFillerBGFilename));
+    succeeded = succeeded && m_rightBG.load(pathToImageDir + QString::fromUtf8(kRightBGFilename));
+    succeeded = succeeded && m_arrowUpBG.load(pathToImageDir + QString::fromUtf8(kUpArrowBGFilename));
+    succeeded = succeeded && m_arrowDownBG.load(pathToImageDir + QString::fromUtf8(kDownArrowBGFilename));
+    succeeded = succeeded && m_dividerImage.load(pathToImageDir + QString::fromUtf8(kDividerFilename));
 
     QPixmap leftScrollFade, rightScrollFade;
-    succeeded = succeeded && leftScrollFade.load(pathToImageDir + kLeftFadeScrollFilename);
-    succeeded = succeeded && rightScrollFade.load(pathToImageDir + kRightFadeScrollFilename);
+    succeeded = succeeded && leftScrollFade.load(pathToImageDir + QString::fromUtf8(kLeftFadeScrollFilename));
+    succeeded = succeeded && rightScrollFade.load(pathToImageDir + QString::fromUtf8(kRightFadeScrollFilename));
 
     if (succeeded) {
         m_leftScrollFadeItem = new QGraphicsPixmapItem(leftScrollFade, this, scene());

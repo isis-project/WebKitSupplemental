@@ -11,6 +11,10 @@ contains(DISTRO_TYPE, release) {
     CONFIG -= debug
 }
 
+contains(QT_VERSION, "^5.*") {
+    QT += widgets
+}
+
 HEADERS += \
     phrasePickerWidget.h
 
