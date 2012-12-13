@@ -251,12 +251,13 @@ bool WebSettings::initWebSettings()
 
     if (settings.contains(WEB_SETTINGS_KEY_PLUGIN_SUPPLEMENTAL_USER_PATH))
         supplementalPath.append(settings.value(WEB_SETTINGS_KEY_PLUGIN_SUPPLEMENTAL_USER_PATH).toString());
-
+#if QT_VERSION < QT_VERSION_CHECK(5,0,0)
     if (!supplementalPath.isEmpty())
         globalWebSettings->setPluginSupplementalPath(supplementalPath.join(QLatin1String(":")));
 
     if (settings.contains(WEB_SETTINGS_KEY_FULLSCREEN_API))
         globalWebSettings->setAttribute(QWebSettings::FullScreenEnabled, settings.value(WEB_SETTINGS_KEY_FULLSCREEN_API).toBool());
+#endif
 
     return true;
 }
