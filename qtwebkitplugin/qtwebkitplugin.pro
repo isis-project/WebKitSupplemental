@@ -13,6 +13,9 @@ HEADERS += \
     WebOSPlatformPlugin.h \
     qwebkitplatformplugin.h
 
+contains(QT_VERSION, "^5.*") {
+    OTHER_FILES += webkitplatformplugin.json
+}
 
 STAGING_INCDIR = $$(STAGING_INCDIR)
 isEmpty(STAGING_INCDIR):STAGING_INCDIR = $$(STAGING_DIR)/include

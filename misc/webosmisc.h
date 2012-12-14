@@ -21,6 +21,7 @@ LICENSE@@@ */
 
 #include "qwebkitglobal.h"
 #include <QtWebKit/QtWebKit>
+#include <QGraphicsWebView>
 
 namespace webOS {
 

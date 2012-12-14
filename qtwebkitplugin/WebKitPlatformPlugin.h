@@ -38,6 +38,11 @@ public:
 class WebKitPlatformPlugin : public QObject, public QWebKitPlatformPlugin {
     Q_OBJECT
     Q_INTERFACES(QWebKitPlatformPlugin)
+
+#if QT_VERSION >= 0x050000
+    Q_PLUGIN_METADATA(IID "WebKitPlatformPlugin" FILE "webkitplatformplugin.json")
+#endif
+
 public:
     virtual bool supportsExtension(Extension) const;
     virtual QObject* createExtension(Extension) const;
