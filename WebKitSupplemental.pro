@@ -1,2 +1,5 @@
 TEMPLATE=subdirs
-SUBDIRS=misc qbsplugin qtwebkitplugin widgets
+SUBDIRS=misc qtwebkitplugin widgets
+!contains(QT_VERSION, "^5.*") {
+ SUBDIRS += qbsplugin
+}

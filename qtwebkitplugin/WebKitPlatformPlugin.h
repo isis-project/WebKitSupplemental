@@ -39,7 +39,7 @@ class WebKitPlatformPlugin : public QObject, public QWebKitPlatformPlugin {
     Q_OBJECT
     Q_INTERFACES(QWebKitPlatformPlugin)
 
-#if QT_VERSION >= 0x050000
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))
     Q_PLUGIN_METADATA(IID "WebKitPlatformPlugin" FILE "webkitplatformplugin.json")
 #endif
 
