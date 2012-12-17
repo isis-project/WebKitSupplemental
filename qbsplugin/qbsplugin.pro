@@ -27,6 +27,9 @@ INCLUDEPATH += $$QT_BUILD_TREE/include
 INCLUDEPATH += $$QT_BUILD_TREE/include/QtGui
 INCLUDEPATH += $$QT_BUILD_TREE/include/QtCore
 INCLUDEPATH += $$QT_BUILD_TREE/include/QtXml
+contains(QT_VERSION, "^5.*") {
+    INCLUDEPATH += $$QT_BUILD_TREE/include/QtGui/5.0.0/QtGui
+}
 SOURCES += $$QT_SOURCE_TREE/src/gui/text/qfontengine_ft.cpp
 
 QMAKE_CXXFLAGS += -fno-rtti -fno-exceptions

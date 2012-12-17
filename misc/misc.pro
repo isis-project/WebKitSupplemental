@@ -3,6 +3,11 @@ TEMPLATE = lib
 CONFIG += staticlib
 
 QT += webkit
+
+contains(QT_VERSION, "^5.*") {
+    QT += webkitwidgets
+}
+
 CONFIG += warn_on
 CONFIG += building-libs
 CONFIG += depend_includepath
