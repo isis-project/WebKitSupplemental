@@ -43,8 +43,13 @@
 #ifndef qbsintegration_h
 #define qbsintegration_h
 
+#if QT_VERSION < 0x050000
 #include <QtGui/QPlatformIntegration>
 #include <QtGui/QPlatformScreen>
+#else
+#include <qpa/qplatformintegration.h>
+#include <qpa/qplatformscreen.h>
+#endif
 
 QT_BEGIN_NAMESPACE
 
